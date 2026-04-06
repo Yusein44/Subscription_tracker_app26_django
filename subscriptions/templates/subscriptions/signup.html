@@ -1,0 +1,171 @@
+{% extends 'subscriptions/base.html' %}
+
+{% block title %}Регистрация - SubTracker{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-wrapper {
+        position: relative;
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .bg-blob {
+        position: absolute;
+        filter: blur(90px);
+        z-index: 0;
+        opacity: 0.4;
+        border-radius: 50%;
+        animation: pulse 8s infinite alternate;
+    }
+    .blob-1 {
+        top: 5%;
+        right: 15%;
+        width: 350px;
+        height: 350px;
+        background: #10b981;
+    }
+    .blob-2 {
+        bottom: 5%;
+        left: 15%;
+        width: 350px;
+        height: 350px;
+        background: #3b82f6;
+        animation-delay: -3s;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1) translate(0, 0); opacity: 0.3; }
+        100% { transform: scale(1.1) translate(-20px, 20px); opacity: 0.5; }
+    }
+
+    .glass-card {
+        background: rgba(24, 24, 27, 0.6) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        border-radius: 24px;
+        z-index: 1;
+        width: 100%;
+        max-width: 450px;
+        padding: 3rem 2rem;
+    }
+
+    .input-group-custom {
+        position: relative;
+        margin-bottom: 1.2rem;
+    }
+    .input-group-custom i {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #71717a;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        z-index: 5;
+    }
+    .input-group-custom input {
+        width: 100%;
+        background-color: rgba(9, 9, 11, 0.7) !important;
+        border: 1px solid #27272a !important;
+        color: #f4f4f5 !important;
+        border-radius: 12px !important;
+        padding: 12px 14px 12px 50px !important;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .input-group-custom:focus-within i {
+        color: #10b981;
+    }
+    .input-group-custom input:focus {
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15) !important;
+        background-color: #09090b !important;
+        outline: none;
+    }
+
+    .form-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #a1a1aa;
+        margin-bottom: 0.4rem;
+        display: block;
+    }
+
+    .helptext {
+        font-size: 0.7rem;
+        color: #71717a;
+        margin-top: -0.5rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    .helptext ul {
+        padding-left: 1rem;
+        margin-top: 0.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div class="glass-card my-4">
+        <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle mb-3" style="width: 64px; height: 64px;">
+                <i class="fa-solid fa-user-astronaut text-success fs-2"></i>
+            </div>
+            <h3 class="fw-extrabold mb-1">Създай профил</h3>
+            <p class="text-muted small">Отнема само 30 секунди.</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div>
+                    <label class="form-label">{{ field.label }}</label>
+                    <div class="input-group-custom">
+                        {% if 'password' in field.name %}
+                            <i class="fa-solid fa-lock"></i>
+                        {% else %}
+                            <i class="fa-solid fa-user"></i>
+                        {% endif %}
+                        
+                        {{ field }}
+                    </div>
+                    {% if field.help_text %}
+                        <div class="helptext">{{ field.help_text|safe }}</div>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="text-danger small fw-bold mb-2 mt-n2">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i> {{ field.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <button type="submit" class="btn btn-success w-100 mt-3 border-0" style="padding: 14px; font-size: 1.1rem; border-radius: 12px; background-color: #10b981; box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);">
+                Регистрирай ме <i class="fa-solid fa-rocket ms-2"></i>
+            </button>
+        </form>
+
+        <div class="mt-4 text-center">
+            <p class="small text-muted mb-0">
+                Вече имаш профил? 
+                <a href="{% url 'login' %}" class="fw-bold text-decoration-none ms-1" style="color: #10b981; transition: 0.2s;">
+                    Влез тук
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

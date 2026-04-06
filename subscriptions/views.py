@@ -3,7 +3,16 @@ from django.contrib.auth.decorators import login_required
 from .models import Subscription
 from .forms import SubscriptionForm
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import logout
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
 
+
+def landing(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    return render(request, 'subscriptions/landing.html')
 
 @login_required(login_url='/admin/login/')
 def dashboard(request):
@@ -65,3 +74,19 @@ def cancel_subscription(request, pk):
     sub.is_active = False
     sub.save()
     return redirect('dashboard')
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('dashboard')
+    else:
+        form = UserCreationForm()
+    return render(request, 'subscriptions/signup.html', {'form': form})

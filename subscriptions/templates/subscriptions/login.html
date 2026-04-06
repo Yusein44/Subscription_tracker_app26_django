@@ -1,0 +1,36 @@
+{% extends 'subscriptions/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="card shadow-lg p-4">
+            <h3 class="fw-bold mb-4 text-center">Вход в системата</h3>
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary w-100 py-2 mt-3">Влез</button>
+            </form>
+            <div class="mt-4 text-center small">
+                <span class="text-secondary">Нямаш профил?</span> 
+                <a href="{% url 'signup' %}" class="text-decoration-none" style="color: var(--accent-color);">Регистрирай се</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    input {
+        background-color: #0f172a !important;
+        border: 1px solid #334155 !important;
+        color: white !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+        width: 100%;
+    }
+</style>
+{% endblock %}
