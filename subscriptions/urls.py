@@ -11,4 +11,6 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='subscriptions/login.html'), name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('signup/', views.signup, name='signup'),
+    path('archive/', views.archived_subscriptions, name='archive'),
+    path('reactivate/<int:pk>/', views.reactivate_subscription, name='reactivate_subscription'),
 ]

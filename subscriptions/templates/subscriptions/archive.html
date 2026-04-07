@@ -1,0 +1,61 @@
+{% extends 'subscriptions/base.html' %}
+
+{% block title %}Архив - SubTracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2 class="fw-extrabold mb-1"><i class="fa-solid fa-box-archive text-secondary me-2"></i> Архив</h2>
+        <p class="text-muted">Тук са всички твои прекратени абонаменти.</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary border-0 text-white px-4">
+            <i class="fa-solid fa-arrow-left me-2"></i> Назад към Дашборд
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-lg border-0 overflow-hidden">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="--bs-table-hover-bg: rgba(255, 255, 255, 0.02);">
+                <thead class="text-secondary small text-uppercase" style="background: rgba(255, 255, 255, 0.03);">
+                    <tr>
+                        <th class="px-4 py-3">Услуга</th>
+                        <th class="py-3">Прекратен на</th>
+                        <th class="py-3 text-end">Последна цена</th>
+                        <th class="px-4 py-3 text-end">Опции</th>
+                    </tr>
+                </thead>
+                <tbody class="text-secondary">
+                    {% for sub in archived_subs %}
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td class="px-4 py-3">
+                            <span class="fw-bold text-muted opacity-75">{{ sub.name }}</span>
+                        </td>
+                        <td class="py-3 small">
+                            {{ sub.start_date|date:"d M Y" }}
+                        </td>
+                        <td class="py-3 text-end fw-semibold">
+                            {{ sub.price }} {{ sub.currency }}
+                        </td>
+                        <td class="px-4 py-3 text-end">
+                            <a href="{% url 'reactivate_subscription' sub.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold">
+                                <i class="fa-solid fa-rotate-left me-1"></i> Възстанови
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5">
+                            <i class="fa-regular fa-folder-closed display-4 d-block mb-3 opacity-25"></i>
+                            <p class="mb-0">Няма прекратени абонаменти.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

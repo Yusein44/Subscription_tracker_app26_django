@@ -32,3 +32,10 @@ class Subscription(models.Model):
         if self.billing_cycle == 'monthly':
             return self.price * 12
         return self.price
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    monthly_budget = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
+
+    def __str__(self):
+        return f"Профил на {self.user.username}"
