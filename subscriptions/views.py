@@ -28,6 +28,14 @@ def dashboard(request):
         else:
             total_monthly += sub.price / 12
 
+    canceled_subs = Subscription.objects.filter(user=request.user, is_active=False)
+    saved_monthly = 0
+    for sub in canceled_subs:
+        if sub.billing_cycle == 'monthly':
+            saved_monthly += sub.price
+        else:
+            saved_monthly += sub.price / 12
+
     profile, created = UserProfile.objects.get_or_create(user=request.user)
     budget = profile.monthly_budget
 
@@ -36,6 +44,13 @@ def dashboard(request):
     else:
         percent = 0
 
+    potential_savings = 0
+    monthly_subs_count = 0
+    for sub in subscriptions:
+        if sub.billing_cycle == 'monthly':
+            yearly_cost = float(sub.price) * 12
+            potential_savings += yearly_cost * 0.20
+            monthly_subs_count += 1
     context = {
         'subscriptions': subscriptions,
         'total_monthly': round(total_monthly, 2),
@@ -45,6 +60,10 @@ def dashboard(request):
         'chart_labels': [sub.name for sub in subscriptions],
         'chart_data': [float(sub.price) if sub.billing_cycle == 'monthly' else float(sub.price / 12) for sub in
                        subscriptions],
+        'saved_monthly': round(saved_monthly, 2),
+        'canceled_count': canceled_subs.count(),
+        'potential_savings': round(potential_savings, 2),
+        'monthly_subs_count': monthly_subs_count,
     }
 
     return render(request, 'subscriptions/dashboard.html', context)
