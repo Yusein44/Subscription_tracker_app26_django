@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from datetime import date, timedelta
 from django.contrib.auth.decorators import login_required
 from .models import Subscription
 from .forms import SubscriptionForm
@@ -20,37 +21,66 @@ def landing(request):
 @login_required(login_url='login')
 def dashboard(request):
     subscriptions = Subscription.objects.filter(user=request.user, is_active=True)
+    canceled_subs = Subscription.objects.filter(user=request.user, is_active=False)
+
+    EXCHANGE_RATES = {
+        'лв.': 1.0,
+        'BGN': 1.0,
+        'EUR': 1.95,
+        '€': 1.95,
+        'USD': 1.80,
+        '$': 1.80
+    }
 
     total_monthly = 0
-    for sub in subscriptions:
-        if sub.billing_cycle == 'monthly':
-            total_monthly += sub.price
-        else:
-            total_monthly += sub.price / 12
-
-    canceled_subs = Subscription.objects.filter(user=request.user, is_active=False)
-    saved_monthly = 0
-    for sub in canceled_subs:
-        if sub.billing_cycle == 'monthly':
-            saved_monthly += sub.price
-        else:
-            saved_monthly += sub.price / 12
-
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
-    budget = profile.monthly_budget
-
-    if budget > 0:
-        percent = (total_monthly / budget) * 100
-    else:
-        percent = 0
-
     potential_savings = 0
     monthly_subs_count = 0
+    upcoming_payments = []
+    today = date.today()
+
     for sub in subscriptions:
+        rate = EXCHANGE_RATES.get(sub.currency, 1.0)
+        price_in_bgn = float(sub.price) * rate
+
         if sub.billing_cycle == 'monthly':
-            yearly_cost = float(sub.price) * 12
+            total_monthly += price_in_bgn
+            yearly_cost = price_in_bgn * 12
             potential_savings += yearly_cost * 0.20
             monthly_subs_count += 1
+        else:
+            total_monthly += price_in_bgn / 12
+
+        next_date = sub.start_date
+        while next_date < today:
+            if sub.billing_cycle == 'monthly':
+                next_date += timedelta(days=30)
+            else:
+                next_date += timedelta(days=365)
+
+        days_until = (next_date - today).days
+
+        if 0 <= days_until <= 14:
+            upcoming_payments.append({
+                'name': sub.name,
+                'days_until': days_until,
+                'amount': sub.price,
+                'currency': sub.currency
+            })
+
+    upcoming_payments.sort(key=lambda x: x['days_until'])
+
+    saved_monthly = 0
+    for sub in canceled_subs:
+        rate = EXCHANGE_RATES.get(sub.currency, 1.0)
+        price_in_bgn = float(sub.price) * rate
+        if sub.billing_cycle == 'monthly':
+            saved_monthly += price_in_bgn
+        else:
+            saved_monthly += price_in_bgn / 12
+
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    budget = float(profile.monthly_budget)
+    percent = (total_monthly / budget) * 100 if budget > 0 else 0
     context = {
         'subscriptions': subscriptions,
         'total_monthly': round(total_monthly, 2),
@@ -58,12 +88,14 @@ def dashboard(request):
         'percent': min(round(percent, 1), 100),
         'is_over_budget': total_monthly > budget,
         'chart_labels': [sub.name for sub in subscriptions],
-        'chart_data': [float(sub.price) if sub.billing_cycle == 'monthly' else float(sub.price / 12) for sub in
-                       subscriptions],
+        'chart_data': [float(sub.price) * EXCHANGE_RATES.get(sub.currency, 1.0) if sub.billing_cycle == 'monthly' else (
+                        float(sub.price) * EXCHANGE_RATES.get(sub.currency,1.0)) / 12
+                       for sub in subscriptions],
         'saved_monthly': round(saved_monthly, 2),
         'canceled_count': canceled_subs.count(),
         'potential_savings': round(potential_savings, 2),
         'monthly_subs_count': monthly_subs_count,
+        'upcoming_payments': upcoming_payments,
     }
 
     return render(request, 'subscriptions/dashboard.html', context)
