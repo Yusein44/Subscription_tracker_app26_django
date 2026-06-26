@@ -1,11 +1,10 @@
 from django import forms
 from .models import Subscription
 
-
 class SubscriptionForm(forms.ModelForm):
     class Meta:
         model = Subscription
-        fields = ['name', 'price', 'currency', 'billing_cycle', 'start_date', 'category']
+        fields = ['name', 'company', 'department', 'price', 'currency', 'billing_cycle', 'start_date', 'invoice_file']
 
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),

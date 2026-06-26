@@ -8,7 +8,7 @@
 <div class="row g-4 mb-4 align-items-end">
     <div class="col-lg-8">
         <p class="text-muted mb-1 text-uppercase small fw-bold tracking-wide">Анализ на разходите</p>
-        <h2 class="fw-extrabold mb-0" style="font-weight: 800; font-size: 2.2rem;">Команден център</h2>
+        <h2 class="fw-extrabold mb-0" style="font-weight: 800; font-size: 2.2rem;">{{ company_name }}</h2>
     </div>
 
     <div class="col-lg-4">
@@ -29,7 +29,7 @@
     <div class="card-body p-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h6 class="text-uppercase small fw-bold text-muted mb-1" style="letter-spacing: 1px;">Месечен бюджет</h6>
+                <h6 class="text-uppercase small fw-bold text-muted mb-1" style="letter-spacing: 1px;">Месечен фирмен бюджет</h6>
                 <h4 class="mb-0 fw-bold">
                     {{ total_monthly }} <span class="text-muted fs-6">/ {{ budget }} лв.</span>
                 </h4>
@@ -52,7 +52,7 @@
 
         {% if is_over_budget %}
         <p class="text-danger small mt-3 mb-0 fw-bold animate__animated animate__shakeX">
-            Внимавай! Превишил си планирания бюджет с {{ total_monthly|add:"-budget" }} лв.
+            Внимание! Компанията превишава бюджета с {{ total_monthly|add:"-budget" }} лв.
         </p>
         {% endif %}
     </div>
@@ -66,9 +66,9 @@
                 <i class="fa-solid fa-trophy text-warning fs-3 animate__animated animate__tada animate__infinite animate__slower"></i>
             </div>
             <div>
-                <h5 class="fw-extrabold text-warning mb-1">Ти си финансов нинджа! 🥷</h5>
+                <h5 class="fw-extrabold text-warning mb-1">Оптимизирани разходи! 📉</h5>
                 <p class="text-muted mb-0 small" style="font-size: 0.9rem;">
-                    Като прекрати <strong class="text-white">{{ canceled_count }}</strong> ненужни абонамента, ти започна да спестяваш по <strong class="text-warning fs-5">{{ saved_monthly }} лв.</strong> всеки месец. Продължавай в същия дух!
+                    Като прекрати <strong class="text-white">{{ canceled_count }}</strong> ненужни абонамента, фирмата спестява по <strong class="text-warning fs-5">{{ saved_monthly }} лв.</strong> на месец.
                 </p>
             </div>
         </div>
@@ -83,7 +83,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary border-opacity-25">
                     <h5 class="fw-bold mb-0">Активни абонаменти</h5>
                     <a href="{% url 'add_subscription' %}" class="btn btn-primary btn-sm px-3">
-                        <i class="fa-solid fa-plus me-1"></i> Нов
+                        <i class="fa-solid fa-plus me-1"></i> Нов софтуер
                     </a>
                 </div>
 
@@ -91,8 +91,9 @@
                     <table class="table table-hover align-middle border-bottom-0">
                         <thead>
                             <tr>
-                                <th>Услуга</th>
-                                <th class="text-center">Цикъл</th>
+                                <th>Софтуер / Услуга</th>
+                                <th>Отдел</th>
+                                <th class="text-center">Документ</th>
                                 <th class="text-end">Цена</th>
                                 <th class="text-end">Опции</th>
                             </tr>
@@ -103,18 +104,34 @@
                                 <td>
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="bg-secondary bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                                            <i class="fa-solid fa-box-open text-muted small"></i>
+                                            <i class="fa-solid fa-cloud text-muted small"></i>
                                         </div>
                                         <span class="fw-bold fs-6">{{ sub.name }}</span>
                                     </div>
                                 </td>
-                                <td class="text-center">
-                                    {% if sub.billing_cycle == 'monthly' %}
-                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 badge-cycle">МЕСЕЧНО</span>
+                                
+                                <td>
+                                    {% if sub.department %}
+                                        <span class="badge bg-secondary bg-opacity-25 text-light border border-secondary border-opacity-50 badge-cycle">{{ sub.department.name }}</span>
                                     {% else %}
-                                        <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 badge-cycle">ГОДИШНО</span>
+                                        <span class="text-muted small">Общ разход</span>
                                     {% endif %}
                                 </td>
+
+                                <td class="text-center">
+                                    {% if sub.is_ai_extracted %}
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" title="Прочетено от AI с точност {{ sub.ai_confidence|default:'100' }}%">
+                                            <i class="fa-solid fa-robot me-1"></i> AI ✅
+                                        </span>
+                                    {% elif sub.invoice_file %}
+                                        <a href="{{ sub.invoice_file.url }}" target="_blank" class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 text-decoration-none">
+                                            <i class="fa-solid fa-file-pdf me-1"></i> Фактура
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted small">-</span>
+                                    {% endif %}
+                                </td>
+
                                 <td class="text-end fw-bold">{{ sub.price }} <span class="text-muted small">{{ sub.currency }}</span></td>
                                 <td class="text-end">
                                     <a href="{% url 'edit_subscription' sub.id %}" class="action-icon" title="Редактирай">
@@ -127,10 +144,10 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" class="text-center py-5">
+                                <td colspan="5" class="text-center py-5">
                                     <div class="text-muted d-flex flex-column align-items-center justify-content-center">
-                                        <i class="fa-regular fa-folder-open mb-3 opacity-50" style="font-size: 3rem;"></i>
-                                        <p class="mb-0">Нямаш активни абонаменти.</p>
+                                        <i class="fa-solid fa-building-circle-exclamation mb-3 opacity-50" style="font-size: 3rem;"></i>
+                                        <p class="mb-0">Компанията няма въведени абонаменти.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -193,6 +210,7 @@
                                         {% else %}
                                             След {{ payment.days_until }} дни
                                         {% endif %}
+                                        <span class="ms-1 text-muted opacity-50">({{ payment.department }})</span>
                                     </p>
                                 </div>
                             </div>
@@ -204,7 +222,6 @@
                     </div>
                 </div>
                 {% endif %}
-
             </div>
         </div>
     </div>
@@ -213,8 +230,8 @@
 
 {% block extra_js %}
 <script>
+    // Същият JS код за графиката остава непокътнат
     const ctx = document.getElementById('expensesChart').getContext('2d');
-
     const centerTextPlugin = {
         id: 'centerText',
         beforeDraw: function(chart) {
