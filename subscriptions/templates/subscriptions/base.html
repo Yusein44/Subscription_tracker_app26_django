@@ -6,152 +6,230 @@
     <title>{% block title %}SubTracker Pro{% endblock %}</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
     <style>
         :root {
-            --bg-dark: #09090b;
-            --card-bg: #18181b;
-            --text-main: #f4f4f5;
-            --text-muted: #a1a1aa;
-            --border-color: #27272a;
-            --accent-blue: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.5);
+            /* FinTech Цветова палитра */
+            --bg-deep: #030305;
+            --bg-bento: rgba(20, 20, 24, 0.6);
+            --border-bento: rgba(255, 255, 255, 0.06);
+            --text-main: #fcfcfd;
+            --text-muted: #8b8b93;
+            --accent-primary: #4f46e5;
+            --accent-glow: rgba(79, 70, 229, 0.4);
+            --neon-blue: #38bdf8;
+            --neon-purple: #c084fc;
         }
 
         body {
-            background-color: var(--bg-dark);
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(79, 70, 229, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.05), transparent 25%);
+            background-attachment: fixed;
             color: var(--text-main);
             font-family: 'Plus Jakarta Sans', sans-serif;
             -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
         }
 
-        /* Navbar Glassmorphism */
-        .navbar {
-            background-color: rgba(9, 9, 11, 0.8) !important;
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
+        /* скролбар */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+
+        /* Плаваща навигация (Floating Pill) */
+        .navbar-floating {
+            background: rgba(15, 15, 18, 0.7) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-bento);
+            border-radius: 100px;
+            margin-top: 1.5rem;
+            margin-bottom: 3rem;
+            padding: 0.75rem 1.5rem;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
         }
 
-        /* Cards */
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            color: var(--text-main);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        /* Bento Box Картотека */
+        .bento-card {
+            background: var(--bg-bento);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-bento);
+            border-radius: 24px;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .bento-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* Table Master Fix */
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        /* Таблица - Премиум вид */
         .table {
             --bs-table-bg: transparent;
             --bs-table-color: var(--text-main);
-            --bs-table-border-color: var(--border-color);
-            --bs-table-hover-bg: rgba(255, 255, 255, 0.03);
-            --bs-table-hover-color: var(--text-main);
             margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0 8px;
         }
         .table thead th {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
             color: var(--text-muted);
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
+            border: none;
+            padding: 0 1rem 0.5rem 1rem;
+        }
+        .table tbody tr {
+            background: rgba(255, 255, 255, 0.02);
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: scale(1.01);
         }
         .table td {
-            vertical-align: middle;
-            padding: 1rem 0.5rem;
-        }
-
-        /* Badges & Buttons */
-        .badge-cycle {
-            padding: 0.4em 0.8em;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.7rem;
-            letter-spacing: 0.02em;
-        }
-        .btn-primary {
-            background-color: var(--accent-blue);
             border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            box-shadow: 0 4px 14px 0 var(--accent-glow);
-            transition: all 0.2s ease;
+            padding: 1.2rem 1rem;
+            vertical-align: middle;
         }
-        .btn-primary:hover {
-            background-color: #2563eb;
-            box-shadow: 0 6px 20px 0 var(--accent-glow);
-            transform: translateY(-1px);
+        .table td:first-child { border-radius: 12px 0 0 12px; }
+        .table td:last-child { border-radius: 0 12px 12px 0; }
+
+        /* Елементи и Бутони */
+        .badge-glass {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+            padding: 0.5em 0.8em;
+            border-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+        
+        .btn-neon {
+            background: linear-gradient(135deg, var(--accent-primary), #6366f1);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            box-shadow: 0 4px 15px var(--accent-glow);
+            transition: all 0.3s ease;
+        }
+        .btn-neon:hover {
+            box-shadow: 0 6px 25px var(--accent-glow);
+            transform: translateY(-2px);
+            color: white;
         }
 
         .action-icon {
             color: var(--text-muted);
-            transition: color 0.2s;
-            font-size: 1.1rem;
-            margin: 0 8px;
+            background: rgba(255, 255, 255, 0.03);
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: 1px solid transparent;
         }
-        .action-icon:hover { color: white; }
-        .action-icon.delete:hover { color: #ef4444; }
-
-        .text-muted, .text-secondary {
-            color: #a1a1aa !important;
+        .action-icon:hover { 
+            color: white; 
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .action-icon.delete:hover { 
+            color: #ef4444; 
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
         }
 
-        .opacity-10 {
-            opacity: 0.15 !important;
+        /* Сияние зад елементи */
+        .ambient-glow {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: var(--accent-primary);
+            filter: blur(80px);
+            opacity: 0.3;
+            z-index: 0;
+            border-radius: 50%;
         }
     </style>
 
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg sticky-top mb-5 py-3">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2" href="{% url 'dashboard' %}">
-                <i class="fa-solid fa-layer-group" style="color: var(--accent-blue);"></i>
-                <span>SubTracker</span>
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-floating">
+            <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2 m-0" href="{% url 'dashboard' %}">
+                <div class="bg-primary rounded p-1 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #38bdf8, #4f46e5) !important;">
+                    <i class="fa-solid fa-layer-group text-white fs-6 mx-1"></i>
+                </div>
+                <span style="letter-spacing: -0.5px;">SubTracker</span>
             </a>
-        <div class="ms-auto d-flex align-items-center gap-4">
-            {% if user.is_authenticated %}
-                <a href="{% url 'archive' %}" class="nav-link small text-muted hover-white text-decoration-none d-flex align-items-center">
-                    <i class="fa-solid fa-box-archive me-2"></i> Архив
-                </a>
+            
+            <div class="ms-auto d-flex align-items-center gap-3 gap-md-4">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'archive' %}" class="text-muted text-decoration-none d-flex align-items-center hover-white transition" style="font-size: 0.9rem; font-weight: 500;">
+                        <i class="fa-solid fa-box-archive me-2"></i> <span class="d-none d-sm-inline">Архив</span>
+                    </a>
+                    
+                    <div class="d-none d-md-flex align-items-center gap-2 border-start border-secondary border-opacity-25 ps-4 py-1">
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=18181b&color=fff&rounded=true" alt="User" width="28" height="28" class="rounded-circle border border-secondary border-opacity-25">
+                        <span class="small fw-semibold text-light">{{ user.username }}</span>
+                    </div>
 
-                <span class="small text-muted d-none d-md-flex align-items-center">
-                    <i class="fa-solid fa-user me-2"></i>{{ user.username }}
-                </span>
-
-                <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-secondary border-0 text-muted hover-white d-flex align-items-center">
-                    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Изход
-                </a>
-            {% endif %}
-</div>
+                    <div class="d-flex align-items-center ms-2 border-start border-secondary border-opacity-25 ps-3">
+                        <a href="{% url 'settings' %}" class="action-icon text-muted" title="Настройки на профила">
+                            <i class="fa-solid fa-gear"></i>
+                        </a>
+                        
+                        <a href="{% url 'logout' %}" class="action-icon text-muted ms-1" title="Изход">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </a>
+                    </div>
+                {% endif %}
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <div class="container pb-5">
         {% block content %}{% endblock %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     {% block extra_js %}{% endblock %}
-
+    
     {% if messages %}
     <div class="toast-container position-fixed bottom-0 end-0 p-4" style="z-index: 1055;">
         {% for message in messages %}
-            <div class="toast align-items-center text-white border-0 mb-3 shadow-lg"
+            <div class="toast align-items-center text-white border-0 mb-3 bento-card animate__animated animate__fadeInUp"
                  role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000"
-                 style="background: rgba(24, 24, 27, 0.85); backdrop-filter: blur(12px); border-radius: 12px; border-left: 4px solid {% if message.tags == 'success' %}#10b981{% elif message.tags == 'warning' %}#f59e0b{% elif message.tags == 'info' %}#3b82f6{% else %}#ef4444{% endif %} !important;">
-
+                 style="border-left: 4px solid {% if message.tags == 'success' %}#10b981{% elif message.tags == 'warning' %}#f59e0b{% elif message.tags == 'info' %}#3b82f6{% else %}#ef4444{% endif %} !important;">
                 <div class="d-flex">
-                    <div class="toast-body fw-medium d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                    <div class="toast-body fw-medium d-flex align-items-center gap-3" style="font-size: 0.95rem;">
                         {% if message.tags == 'success' %}
                             <i class="fa-solid fa-circle-check text-success fs-5"></i>
                         {% elif message.tags == 'warning' %}
@@ -163,12 +241,11 @@
                         {% endif %}
                         {{ message }}
                     </div>
-                    <button type="button" class="btn-close btn-close-white me-3 m-auto opacity-50" data-bs-dismiss="toast" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white me-3 m-auto opacity-50" data-bs-dismiss="toast"></button>
                 </div>
             </div>
         {% endfor %}
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var toastElList = [].slice.call(document.querySelectorAll('.toast'))

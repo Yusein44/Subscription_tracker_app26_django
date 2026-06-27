@@ -17,3 +17,17 @@ class SubscriptionForm(forms.ModelForm):
                 field.widget.attrs['class'] = 'form-select'
             else:
                 field.widget.attrs['class'] = 'form-control'
+
+
+class CompanySettingsForm(forms.Form):
+    name = forms.CharField(
+        max_length=255, 
+        label='Име на компанията', 
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Въведи име...'})
+    )
+    monthly_budget = forms.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        label='Месечен бюджет (BGN)', 
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
+    )

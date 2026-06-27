@@ -5,8 +5,9 @@ from django.contrib.auth import logout, login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 
+
 from .models import Subscription, UserProfile, Company
-from .forms import SubscriptionForm
+from .forms import SubscriptionForm, CompanySettingsForm
 from .ai_script import extract_invoice_data
 
 def landing(request):
@@ -103,6 +104,29 @@ def dashboard(request):
     }
 
     return render(request, 'subscriptions/dashboard.html', context)
+
+@login_required(login_url='login')
+def settings(request):
+    company = get_user_company(request.user)
+    
+    if request.method == 'POST':
+        form = CompanySettingsForm(request.POST)
+        if form.is_valid():
+            # Обновяваме данните на компанията
+            company.name = form.cleaned_data['name']
+            company.monthly_budget = form.cleaned_data['monthly_budget']
+            company.save()
+            
+            messages.success(request, 'Настройките на профила са обновени успешно!')
+            return redirect('dashboard')
+    else:
+        # Зареждаме текущите данни във формата
+        form = CompanySettingsForm(initial={
+            'name': company.name, 
+            'monthly_budget': company.monthly_budget
+        })
+        
+    return render(request, 'subscriptions/settings.html', {'form': form})
 
 
 @login_required(login_url='/admin/login/')

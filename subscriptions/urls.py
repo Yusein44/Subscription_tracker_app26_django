@@ -13,4 +13,5 @@ urlpatterns = [
     path('signup/', views.signup, name='signup'),
     path('archive/', views.archived_subscriptions, name='archive'),
     path('reactivate/<int:pk>/', views.reactivate_subscription, name='reactivate_subscription'),
+    path('settings/', views.settings, name='settings'),
 ]
