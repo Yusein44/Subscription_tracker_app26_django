@@ -5,10 +5,11 @@ from django.contrib.auth import logout, login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 
-
 from .models import Subscription, UserProfile, Company
 from .forms import SubscriptionForm, CompanySettingsForm
 from .ai_script import extract_invoice_data
+import csv
+from django.http import HttpResponse
 
 def landing(request):
     if request.user.is_authenticated:
@@ -112,7 +113,6 @@ def settings(request):
     if request.method == 'POST':
         form = CompanySettingsForm(request.POST)
         if form.is_valid():
-            # Обновяваме данните на компанията
             company.name = form.cleaned_data['name']
             company.monthly_budget = form.cleaned_data['monthly_budget']
             company.save()
@@ -120,7 +120,6 @@ def settings(request):
             messages.success(request, 'Настройките на профила са обновени успешно!')
             return redirect('dashboard')
     else:
-        # Зареждаме текущите данни във формата
         form = CompanySettingsForm(initial={
             'name': company.name, 
             'monthly_budget': company.monthly_budget
@@ -229,3 +228,69 @@ def reactivate_subscription(request, pk):
     sub.save()
     messages.success(request, f"Абонаментът за {sub.name} е възстановен!")
     return redirect('dashboard')
+
+@login_required(login_url='login')
+def export_subscriptions_csv(request):
+    company = get_user_company(request.user)
+    subscriptions = Subscription.objects.filter(company=company)
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="subscriptions_export.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow(['Софтуер / Услуга', 'Отдел', 'Цена', 'Валута', 'Цикъл', 'Статус'])
+
+    for sub in subscriptions:
+        status = 'Активен' if sub.is_active else 'Прекратен'
+        department = sub.department.name if sub.department else 'Общ разход'
+        
+        writer.writerow([
+            sub.name, 
+            department, 
+            sub.price, 
+            sub.currency, 
+            sub.billing_cycle, 
+            status
+        ])
+
+    return response
+
+import json
+from django.shortcuts import render
+
+def analytics_view(request):
+    oracle_labels = ['Яну', 'Фев', 'Мар', 'Апр', 'Май', 'Юни', 'Юли (Сега)', 'Авг (AI)', 'Сеп (AI)', 'Окт (AI)']
+    oracle_past_data = [3200, 3400, 3100, 4500, 4200, 4100, 4300, None, None, None]
+    oracle_future_data = [None, None, None, None, None, None, 4300, 4600, 4100, 3800]
+
+    sky_labels = ['AWS', 'Salesforce', 'Google W.S.', 'Slack', 'Figma']
+    sky_data = [2500, 1800, 950, 600, 450]
+
+    heatmap_data = [
+        {'month': 'Януари', 'amount': '1,200', 'intensity': 1},
+        {'month': 'Февруари', 'amount': '2,500', 'intensity': 2},
+        {'month': 'Март', 'amount': '1,400', 'intensity': 1},
+        {'month': 'Април', 'amount': '8,900', 'intensity': 4},
+        {'month': 'Май', 'amount': '4,500', 'intensity': 3},
+        {'month': 'Юни', 'amount': '2,100', 'intensity': 2},
+        {'month': 'Юли', 'amount': '1,100', 'intensity': 1},
+        {'month': 'Август', 'amount': '900', 'intensity': 1},
+        {'month': 'Септември', 'amount': '5,600', 'intensity': 3},
+        {'month': 'Октомври', 'amount': '7,800', 'intensity': 4},
+        {'month': 'Ноември', 'amount': '3,200', 'intensity': 2},
+        {'month': 'Декември', 'amount': '6,100', 'intensity': 3},
+    ]
+
+    context = {
+        'total_spent_year': '45,230',
+        'predicted_savings': '3,400',
+        'oracle_labels': json.dumps(oracle_labels),
+        'oracle_past_data': json.dumps(oracle_past_data),
+        'oracle_future_data': json.dumps(oracle_future_data),
+        'sky_labels': json.dumps(sky_labels),
+        'sky_data': json.dumps(sky_data),
+        'heatmap_data': heatmap_data,
+    }
+    
+    return render(request, 'subscriptions/analytics.html', context)

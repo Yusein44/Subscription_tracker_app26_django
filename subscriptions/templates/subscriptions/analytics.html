@@ -1,0 +1,278 @@
+{% extends 'subscriptions/base.html' %}
+
+{% block title %}Оракул - Дълбок Анализ{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    body {
+        cursor: none; background-color: #020617 !important; 
+        background-image: 
+            radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.05), transparent 40%),
+            radial-gradient(circle at 90% 80%, rgba(56, 189, 248, 0.05), transparent 40%),
+            linear-gradient(135deg, rgba(2, 6, 23, 0.9) 0%, rgba(6, 15, 38, 0.95) 100%) !important;
+        background-size: cover !important; background-attachment: fixed !important; overflow-x: hidden;
+    }
+    #particles-js { position: fixed; width: 100vw; height: 100vh; top: 0; left: 0; z-index: 0; pointer-events: none; }
+    .cursor-dot { width: 8px; height: 8px; background: #D4AF37; border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); box-shadow: 0 0 15px #D4AF37; }
+    .cursor-outline { width: 40px; height: 40px; border: 1px solid rgba(212, 175, 55, 0.5); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9998; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s, background 0.2s; }
+    .outfit-font { font-family: 'Outfit', sans-serif !important; }
+    .text-gold { background: linear-gradient(135deg, #FFF5B3, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .glass-panel {
+        background: linear-gradient(145deg, rgba(10, 22, 47, 0.5), rgba(4, 10, 24, 0.8));
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 24px;
+        box-shadow: 0 30px 60px -15px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+        position: relative; overflow: hidden; transform-style: preserve-3d; transition: border-color 0.3s;
+    }
+    .glass-panel:hover { border-color: rgba(212, 175, 55, 0.4); }
+
+    .heatmap-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; margin-top: 1.5rem; }
+    .heatmap-cell { aspect-ratio: 1; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); position: relative; cursor: none; transition: 0.2s; }
+    .heatmap-cell:hover { transform: scale(1.1) translateZ(10px); z-index: 10; border-color: #D4AF37; box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
+    .heatmap-tooltip { position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: rgba(4, 9, 20, 0.95); border: 1px solid #D4AF37; color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; white-space: nowrap; opacity: 0; pointer-events: none; transition: 0.2s; z-index: 20; }
+    .heatmap-cell:hover .heatmap-tooltip { opacity: 1; bottom: 130%; }
+    .intensity-1 { background: rgba(212, 175, 55, 0.1); } .intensity-2 { background: rgba(212, 175, 55, 0.3); } .intensity-3 { background: rgba(212, 175, 55, 0.6); } .intensity-4 { background: rgba(212, 175, 55, 0.9); box-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
+
+    .btn-outline-gold { background: rgba(255, 255, 255, 0.03); color: #e2e8f0; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 0.8rem 1.5rem; cursor: none; transition: all 0.3s ease; text-transform: uppercase; text-decoration: none; display: inline-flex; align-items: center; }
+    .btn-outline-gold:hover { background: rgba(212, 175, 55, 0.1); color: #D4AF37; border-color: #D4AF37; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cursor-dot"></div>
+<div class="cursor-outline"></div>
+<div id="particles-js"></div>
+
+<div class="container-fluid px-4 position-relative z-1 mb-5 pt-4">
+    <div class="d-flex justify-content-between align-items-end mb-5 animate__animated animate__fadeIn">
+        <div>
+            <div class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-1 rounded-pill mb-3 text-uppercase" style="letter-spacing: 2px; font-size: 0.7rem;">
+                <i class="fa-solid fa-eye me-1"></i> Оракул Модул Активен
+            </div>
+            <h1 class="fw-extrabold text-white outfit-font display-4 mb-0">Дълбок Анализ</h1>
+        </div>
+        <div style="transform: translateZ(20px);">
+            <a href="{% url 'dashboard' %}" class="btn-outline-gold"><i class="fa-solid fa-arrow-left me-2"></i> Обратно в Таблото</a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+        <div class="col-md-4">
+            <div class="glass-panel p-4 text-center" data-tilt data-tilt-max="5">
+                <p class="text-muted text-uppercase fw-bold mb-2" style="font-size: 0.8rem; letter-spacing: 1px;">Общо Изразходвани</p>
+                <h2 class="text-white outfit-font fw-bold" style="transform: translateZ(30px);">{{ total_spent_year }} <span class="fs-5 text-muted">лв.</span></h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-panel p-4 text-center" data-tilt data-tilt-max="5" style="border-color: rgba(56, 189, 248, 0.3);">
+                <p class="text-info text-uppercase fw-bold mb-2" style="font-size: 0.8rem; letter-spacing: 1px;">YOY Растеж на Разходите</p>
+                <h2 class="text-white outfit-font fw-bold" style="transform: translateZ(30px);">+12.4% <i class="fa-solid fa-arrow-trend-up text-info fs-5"></i></h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-panel p-4 text-center" data-tilt data-tilt-max="5" style="border-color: rgba(16, 185, 129, 0.3);">
+                <p class="text-success text-uppercase fw-bold mb-2" style="font-size: 0.8rem; letter-spacing: 1px;">AI Прогнозирано Спестяване</p>
+                <h2 class="text-white outfit-font fw-bold" style="transform: translateZ(30px);">{{ predicted_savings }} <span class="fs-5 text-muted">лв.</span></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+        <div class="col-12">
+            <div class="glass-panel p-4 p-md-5" data-tilt data-tilt-max="1">
+                <div class="d-flex justify-content-between align-items-center mb-4" style="transform: translateZ(20px);">
+                    <h4 class="fw-bold mb-0 text-white outfit-font"><i class="fa-solid fa-chart-area text-gold me-2"></i> Прогноза за ликвидност (Oracle Area)</h4>
+                    <span class="text-muted small"><i class="fa-solid fa-circle text-gold me-1" style="font-size: 8px;"></i> Реални данни  &nbsp;&nbsp; <i class="fa-solid fa-circle text-info me-1" style="font-size: 8px;"></i> AI Прогноза</span>
+                </div>
+                <div style="position: relative; height: 400px; width: 100%; transform: translateZ(30px);">
+                    <canvas id="oracleChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+        <div class="col-xl-6">
+            <div class="glass-panel p-4 p-md-5 h-100" data-tilt data-tilt-max="2">
+                <h4 class="fw-bold text-white outfit-font mb-2" style="transform: translateZ(20px);"><i class="fa-solid fa-fire text-gold me-2"></i> Температурна Карта на Разходите</h4>
+                <p class="text-muted small mb-4" style="transform: translateZ(20px);">Интензитет на харчене по месеци</p>
+                <div class="heatmap-grid" style="transform: translateZ(40px);">
+                    {% for item in heatmap_data %}
+                    <div class="heatmap-cell intensity-{{ item.intensity }}">
+                        <div class="heatmap-tooltip">{{ item.month }}: {{ item.amount }} лв.</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="d-flex justify-content-between mt-4 text-muted small fw-bold text-uppercase" style="transform: translateZ(20px);">
+                    <span><i class="fa-solid fa-square" style="color: rgba(212, 175, 55, 0.1);"></i> Нисък</span>
+                    <span><i class="fa-solid fa-square" style="color: rgba(212, 175, 55, 0.9);"></i> Критичен</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="glass-panel p-4 p-md-5 h-100" data-tilt data-tilt-max="2">
+                <h4 class="fw-bold text-white outfit-font mb-4" style="transform: translateZ(20px);"><i class="fa-solid fa-city text-info me-2"></i> Топ 5 Разходи (Небостъргачи)</h4>
+                <div style="position: relative; height: 250px; width: 100%; transform: translateZ(40px);">
+                    <canvas id="skyscraperChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-4 mt-1 animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+        
+        <div class="col-xl-7">
+            <div class="glass-panel p-4 p-md-5 h-100" data-tilt data-tilt-max="2" style="border-top: 2px solid rgba(239, 68, 68, 0.5);">
+                <div class="d-flex justify-content-between align-items-center mb-4" style="transform: translateZ(20px);">
+                    <h4 class="fw-bold text-white outfit-font mb-0">
+                        <i class="fa-solid fa-triangle-exclamation text-danger me-2"></i> Детектор на Аномалии
+                    </h4>
+                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill">
+                        2 Флага
+                    </span>
+                </div>
+                
+                <div class="d-flex flex-column gap-3" style="transform: translateZ(30px);">
+                    <div class="p-3 rounded-4" style="background: rgba(239, 68, 68, 0.05); border-left: 3px solid #ef4444;">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-danger fw-bold small text-uppercase letter-spacing-1">Критичен Скок</span>
+                            <span class="text-muted small">Преди 2 часа</span>
+                        </div>
+                        <p class="text-white mb-0">
+                            Абонаментът за <strong class="text-gold">Amazon Web Services</strong> отчита <span class="text-danger fw-bold">+34%</span> увеличение спрямо средното за последните 3 месеца.
+                        </p>
+                    </div>
+
+                    <div class="p-3 rounded-4" style="background: rgba(245, 158, 11, 0.05); border-left: 3px solid #f59e0b;">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-warning fw-bold small text-uppercase letter-spacing-1">Препоръка за Оптимизация</span>
+                            <span class="text-muted small">Вчера</span>
+                        </div>
+                        <p class="text-white mb-0">
+                            Засечено е припокриване на функционалности. Плащате едновременно за <strong class="text-gold">Zoom</strong> и <strong class="text-gold">Google Workspace</strong>.
+                        </p>
+                    </div>
+
+                    <div class="p-3 rounded-4" style="background: rgba(16, 185, 129, 0.05); border-left: 3px solid #10b981;">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-success fw-bold small text-uppercase letter-spacing-1">Оптимизирано</span>
+                            <span class="text-muted small">Преди 3 дни</span>
+                        </div>
+                        <p class="text-white mb-0">
+                            Успешно прекратен неактивен лиценз за Adobe Creative Cloud.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-5">
+            <div class="glass-panel p-4 p-md-5 h-100" data-tilt data-tilt-max="2" style="border-top: 2px solid rgba(56, 189, 248, 0.5);">
+                <h4 class="fw-bold text-white outfit-font mb-4" style="transform: translateZ(20px);">
+                    <i class="fa-solid fa-network-wired text-info me-2"></i> Бюджетна Матрица
+                </h4>
+                <div style="position: relative; height: 260px; width: 100%; transform: translateZ(40px);">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+<script>
+    const cursorDot = document.querySelector('.cursor-dot');
+    const cursorOutline = document.querySelector('.cursor-outline');
+    window.addEventListener('mousemove', e => {
+        cursorDot.style.left = e.clientX + 'px'; cursorDot.style.top = e.clientY + 'px';
+        cursorOutline.animate({ left: e.clientX + 'px', top: e.clientY + 'px' }, { duration: 150, fill: "forwards" });
+    });
+
+    particlesJS("particles-js", {
+        "particles": { "number": { "value": 40 }, "color": { "value": "#D4AF37" }, "opacity": { "value": 0.15 }, "size": { "value": 2 }, "line_linked": { "enable": true, "distance": 200, "color": "#D4AF37", "opacity": 0.05 }, "move": { "enable": true, "speed": 0.5 } },
+        "interactivity": { "events": { "onhover": { "enable": false } } }
+    });
+
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = "'Outfit', sans-serif";
+
+    const ctxOracle = document.getElementById('oracleChart').getContext('2d');
+    let gradientGold = ctxOracle.createLinearGradient(0, 0, 0, 400);
+    gradientGold.addColorStop(0, 'rgba(212, 175, 55, 0.6)'); gradientGold.addColorStop(1, 'rgba(212, 175, 55, 0.0)');
+    let gradientBlue = ctxOracle.createLinearGradient(0, 0, 0, 400);
+    gradientBlue.addColorStop(0, 'rgba(56, 189, 248, 0.5)'); gradientBlue.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
+    new Chart(ctxOracle, {
+        type: 'line',
+        data: {
+            labels: {{ oracle_labels|safe }},
+            datasets: [
+                { label: 'Изразходвани', data: {{ oracle_past_data|safe }}, borderColor: '#D4AF37', borderWidth: 3, backgroundColor: gradientGold, fill: true, tension: 0.4, pointBackgroundColor: '#020617', pointBorderColor: '#D4AF37', pointRadius: 5 },
+                { label: 'AI Прогноза', data: {{ oracle_future_data|safe }}, borderColor: '#38bdf8', borderDash: [5, 5], borderWidth: 3, backgroundColor: gradientBlue, fill: true, tension: 0.4, pointBackgroundColor: '#020617', pointBorderColor: '#38bdf8', pointRadius: 5 }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+    });
+
+    const ctxSky = document.getElementById('skyscraperChart').getContext('2d');
+    let gradientBar = ctxSky.createLinearGradient(0, 0, 0, 250);
+    gradientBar.addColorStop(0, 'rgba(56, 189, 248, 0.8)'); gradientBar.addColorStop(1, 'rgba(56, 189, 248, 0.1)');
+
+    new Chart(ctxSky, {
+        type: 'bar',
+        data: {
+            labels: {{ sky_labels|safe }},
+            datasets: [{ label: 'Месечен Разход (лв)', data: {{ sky_data|safe }}, backgroundColor: gradientBar, borderColor: '#38bdf8', borderWidth: { top: 2, right: 0, bottom: 0, left: 0 }, borderRadius: 4, barPercentage: 0.6 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+    });
+
+    const ctxRadar = document.getElementById('radarChart').getContext('2d');
+    
+    new Chart(ctxRadar, {
+        type: 'radar',
+        data: {
+            labels: ['Маркетинг', 'ИТ & Инфра', 'Продажби', 'HR', 'Дизайн', 'Мениджмънт'],
+            datasets: [{
+                label: 'Бюджетно Тегло',
+                data: [85, 95, 60, 40, 70, 50],
+                backgroundColor: 'rgba(56, 189, 248, 0.2)',
+                borderColor: '#38bdf8',
+                pointBackgroundColor: '#020617',
+                pointBorderColor: '#D4AF37',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#D4AF37',
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    pointLabels: {
+                        color: '#94a3b8',
+                        font: { family: "'Outfit', sans-serif", size: 12, weight: 'bold' }
+                    },
+                    ticks: { display: false } 
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(4, 9, 20, 0.95)', padding: 12, cornerRadius: 8,
+                    borderColor: 'rgba(56, 189, 248, 0.3)', borderWidth: 1
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

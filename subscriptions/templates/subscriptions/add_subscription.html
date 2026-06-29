@@ -3,109 +3,295 @@
 {% block title %}Нов абонамент - SubTracker{% endblock %}
 
 {% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <style>
+    /* Брутален премиум бекграунд */
+    body {
+        background-color: #020617 !important; 
+        background-image: 
+            radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.08), transparent 45%),
+            radial-gradient(circle at 20% 80%, rgba(56, 189, 248, 0.04), transparent 40%),
+            linear-gradient(135deg, rgba(2, 6, 23, 0.88) 0%, rgba(6, 15, 38, 0.92) 100%),
+            url('https://plus.unsplash.com/premium_photo-1725408091552-40a37404297a?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') !important;
+        background-size: cover !important;
+        background-attachment: fixed !important;
+    }
+
+    .outfit-font { font-family: 'Outfit', sans-serif !important; }
+
+    /* Стъклени панели (Glassmorphism) */
+    .glass-panel {
+        background: linear-gradient(145deg, rgba(10, 22, 47, 0.6), rgba(4, 10, 24, 0.8));
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(212, 175, 55, 0.15);
+        border-radius: 24px;
+        box-shadow: 0 20px 50px -10px rgba(0,0,0,0.7);
+        overflow: hidden;
+        position: relative;
+    }
+
+    /* Златни елементи */
+    .text-gold {
+        background: linear-gradient(135deg, #FFF5B3, #D4AF37);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+
+    /* Пулсиращ ефект за AI Асистента */
+    .ai-core {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(212,175,55,0.4) 0%, rgba(212,175,55,0) 70%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin: 0 auto 2rem auto;
+    }
+    .ai-core::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 1px solid #D4AF37;
+        animation: pulseCore 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulseCore {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    /* Стилизиране на полетата с левитиращ ефект */
     .form-control, .form-select {
-        background: rgba(255, 255, 255, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        color: #fcfcfd !important;
-        border-radius: 12px;
-        padding: 0.8rem 1.2rem;
-        transition: all 0.3s ease;
+        background: rgba(4, 10, 24, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: #fff !important;
+        border-radius: 14px;
+        padding: 1rem 1.2rem;
         font-weight: 500;
-        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
     }
-
     .form-control:focus, .form-select:focus {
-        border-color: var(--accent-primary) !important;
-        box-shadow: 0 0 0 4px var(--accent-glow) !important;
-        background: rgba(255, 255, 255, 0.06) !important;
+        border-color: #D4AF37 !important;
+        box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15), inset 0 2px 10px rgba(0,0,0,0.3) !important;
+        transform: translateY(-2px);
+        background: rgba(10, 22, 47, 0.8) !important;
     }
 
-    .form-control[type="file"] {
-        padding: 0.5rem;
+    /* СКЕНИРАЩА ЗОНА ЗА ФАКТУРАТА (WOW ЕФЕКТ) */
+    .scanner-box {
+        position: relative;
+        background: rgba(212, 175, 55, 0.03);
+        border: 2px dashed rgba(212, 175, 55, 0.3);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s;
+        overflow: hidden;
     }
-    .form-control[type="file"]::file-selector-button {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        color: white;
-        margin-right: 1rem;
-        transition: all 0.2s ease;
-        cursor: pointer;
-        font-weight: 600;
+    .scanner-box:hover {
+        background: rgba(212, 175, 55, 0.08);
+        border-color: #D4AF37;
     }
-    .form-control[type="file"]::file-selector-button:hover {
-        background: rgba(255, 255, 255, 0.2);
-    }
-
-    .custom-label {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-weight: 700;
-        color: var(--text-muted);
-        margin-bottom: 0.5rem;
-    }
-
-    ::-webkit-calendar-picker-indicator {
-        filter: invert(1);
+    /* Сканираща линия */
+    .scanner-line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+        box-shadow: 0 0 15px #D4AF37;
         opacity: 0.5;
-        cursor: pointer;
-        transition: 0.2s;
+        animation: scan 3s linear infinite;
+        pointer-events: none;
     }
-    ::-webkit-calendar-picker-indicator:hover { opacity: 0.9; }
+    @keyframes scan {
+        0% { top: -10%; }
+        50% { top: 110%; }
+        100% { top: -10%; }
+    }
+
+    /* Бутони */
+    .btn-gold {
+        background: linear-gradient(135deg, #FFE066, #D4AF37);
+        color: #040914 !important;
+        font-weight: 700;
+        border: none;
+        border-radius: 14px;
+        padding: 1rem;
+        box-shadow: 0 10px 25px -5px rgba(212, 175, 55, 0.5);
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .btn-gold:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px -5px rgba(212, 175, 55, 0.7);
+        background: linear-gradient(135deg, #FFF5B3, #E5C07B);
+    }
+    .btn-outline-gold {
+        background: rgba(212, 175, 55, 0.05);
+        color: #D4AF37;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        border-radius: 14px;
+        padding: 1rem;
+        font-weight: 700;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    .btn-outline-gold:hover {
+        background: rgba(212, 175, 55, 0.15);
+        color: #FFF099;
+    }
+
+    .field-label {
+        color: #94a3b8;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 0.6rem;
+        font-weight: 700;
+    }
+
+    /* Футър */
+    .premium-footer {
+        border-top: 1px solid rgba(212, 175, 55, 0.15);
+        padding-top: 4rem;
+        padding-bottom: 2rem;
+        margin-top: 6rem;
+    }
+    .footer-link {
+        color: #94a3b8;
+        text-decoration: none;
+        transition: color 0.3s;
+        margin-bottom: 0.6rem;
+        display: block;
+        font-size: 0.9rem;
+    }
+    .footer-link:hover { color: #D4AF37; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center mb-5 animate__animated animate__fadeIn" style="min-height: 70vh; position: relative;">
+<div class="row justify-content-center mt-5 mb-5 animate__animated animate__fadeIn">
     
-    <div class="ambient-glow" style="top: 20%; left: 30%; background: #4f46e5; width: 300px; height: 300px; filter: blur(120px);"></div>
-    
-    <div class="col-md-8 col-lg-6 position-relative z-1">
-        
-        <div class="text-center mb-5">
-            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(56,189,248,0.1), rgba(79,70,229,0.2)); border: 1px solid rgba(79,70,229,0.3);">
-                <i class="fa-solid fa-wand-magic-sparkles fs-3 text-info"></i>
-            </div>
-            <h2 class="fw-extrabold mb-2 text-white">Добави абонамент</h2>
-            <p class="text-muted">Въведи данните или качи фактура, за да ги извлечем с AI.</p>
-        </div>
-
-        <div class="bento-card p-4 p-md-5">
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %} 
+    <div class="col-xl-10">
+        <div class="glass-panel p-0">
+            <div class="row g-0">
                 
-                <div class="row g-4">
-                    {% for field in form %}
-                        <div class="{% if field.name == 'price' or field.name == 'currency' or field.name == 'start_date' or field.name == 'billing_cycle' %}col-md-6{% else %}col-12{% endif %}">
-                            <label class="form-label custom-label">{{ field.label }}</label>
-                            
-                            {{ field }}
-                            
-                            {% if field.errors %}
-                                <div class="text-danger small mt-2 fw-bold">
-                                    <i class="fa-solid fa-circle-exclamation me-1"></i> {{ field.errors.0 }}
-                                </div>
-                            {% endif %}
+                <div class="col-lg-5 d-none d-lg-flex flex-column justify-content-between p-5" style="background: rgba(4, 9, 20, 0.5); border-right: 1px solid rgba(255,255,255,0.05);">
+                    
+                    <div>
+                        <div class="d-inline-flex align-items-center gap-2 mb-4 px-3 py-1 rounded-pill" style="border: 1px solid rgba(212,175,55,0.3); background: rgba(212,175,55,0.1);">
+                            <div class="spinner-grow spinner-grow-sm text-gold" role="status"></div>
+                            <span class="text-gold fw-bold" style="font-size: 0.8rem; letter-spacing: 1px;">AI ГОТОВНОСТ</span>
                         </div>
-                    {% endfor %}
+                        <h2 class="text-white outfit-font fw-bold display-6 mb-4">Умно<br>добавяне.</h2>
+                        <p class="text-muted fs-5 lh-lg">
+                            Не губи време в ръчно писане. Качи PDF фактура в полето отдясно и нашият алгоритъм ще извлече:
+                        </p>
+                        <ul class="list-unstyled mt-4">
+                            <li class="mb-3 d-flex align-items-center gap-3 text-light-silver"><i class="fa-solid fa-check text-gold"></i> Име на доставчика</li>
+                            <li class="mb-3 d-flex align-items-center gap-3 text-light-silver"><i class="fa-solid fa-check text-gold"></i> Точна сума и валута</li>
+                            <li class="mb-3 d-flex align-items-center gap-3 text-light-silver"><i class="fa-solid fa-check text-gold"></i> Дата на подновяване</li>
+                        </ul>
+                    </div>
+
+                    <div class="text-center mt-5">
+                        <div class="ai-core">
+                            <i class="fa-solid fa-robot fs-1 text-gold"></i>
+                        </div>
+                        <p class="text-muted small text-uppercase letter-spacing-1">Очаква данни за анализ...</p>
+                    </div>
                 </div>
-                
-                <hr class="my-5" style="border-color: rgba(255,255,255,0.1);">
-                
-                <div class="d-flex gap-3">
-                    <a href="{% url 'dashboard' %}" class="btn w-50 py-2 border-0 fw-bold" style="background: rgba(255,255,255,0.05); color: white; border-radius: 12px; transition: 0.2s;">
-                        <i class="fa-solid fa-arrow-left me-2"></i> Отказ
-                    </a>
-                    <button type="submit" class="btn-neon w-50 py-2 fs-6">
-                        <i class="fa-solid fa-check me-2"></i> Запази
-                    </button>
+
+                <div class="col-lg-7 p-4 p-md-5">
+                    <h3 class="text-white outfit-font fw-bold mb-4 d-lg-none">Добави абонамент</h3>
+                    
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %} 
+                        
+                        <div class="row g-4">
+                            <div class="col-12 mb-2">
+                                <div class="scanner-box">
+                                    <div class="scanner-line"></div>
+                                    <label class="field-label d-flex align-items-center gap-2 mb-3">
+                                        <i class="fa-solid fa-file-pdf text-gold fs-5"></i> Качи фактура (AI Екстракция)
+                                    </label>
+                                    {{ form.invoice_file }}
+                                    <p class="text-muted small mt-2 mb-0"><i class="fa-solid fa-info-circle me-1"></i> Системата автоматично ще попълни долните полета, ако качиш файл.</p>
+                                </div>
+                            </div>
+
+                            <div class="col-12"><hr style="border-color: rgba(255,255,255,0.1);"></div>
+
+                            {% for field in form %}
+                                {% if field.name != 'invoice_file' %}
+                                <div class="{% if field.name == 'price' or field.name == 'currency' or field.name == 'start_date' or field.name == 'billing_cycle' %}col-md-6{% else %}col-12{% endif %}">
+                                    <label class="field-label">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="text-danger small mt-2 fw-bold" style="color: #ef4444 !important;">
+                                            <i class="fa-solid fa-circle-exclamation me-1"></i> {{ field.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-flex gap-3 mt-5">
+                            <a href="{% url 'dashboard' %}" class="btn-outline-gold w-50">
+                                <i class="fa-solid fa-arrow-left me-2"></i> Отказ
+                            </a>
+                            <button type="submit" class="btn-gold w-50">
+                                <i class="fa-solid fa-plus me-2"></i> Добави в базата
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+
+            </div>
         </div>
-        
     </div>
 </div>
+
+<footer class="premium-footer">
+    <div class="row">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+            <h4 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-layer-group text-gold"></i> SubTracker
+            </h4>
+            <p class="text-muted small" style="line-height: 1.6; color: #94a3b8;">
+                Водещият софтуер за управление и анализ на фирмени абонаменти. Оптимизирай бюджета си с помощта на изкуствен интелект.
+            </p>
+        </div>
+        <div class="col-lg-2 offset-lg-2 col-6 mb-4 mb-lg-0">
+            <h6 class="text-white text-uppercase letter-spacing-1 mb-4 fw-bold" style="font-size: 0.8rem;">Продукт</h6>
+            <a href="#" class="footer-link">Анализи</a>
+            <a href="#" class="footer-link">Експорт</a>
+        </div>
+        <div class="col-lg-2 col-6 mb-4 mb-lg-0">
+            <h6 class="text-white text-uppercase letter-spacing-1 mb-4 fw-bold" style="font-size: 0.8rem;">Компания</h6>
+            <a href="#" class="footer-link">За нас</a>
+            <a href="#" class="footer-link">Контакти</a>
+        </div>
+        <div class="col-lg-2 col-12">
+            <h6 class="text-white text-uppercase letter-spacing-1 mb-4 fw-bold" style="font-size: 0.8rem;">Правни</h6>
+            <a href="#" class="footer-link">Условия</a>
+            <a href="#" class="footer-link">Поверителност</a>
+        </div>
+    </div>
+    <div class="text-center mt-5 pt-4" style="border-top: 1px solid rgba(255,255,255,0.03); font-size: 0.8rem; color: #64748b;">
+        &copy; 2026 SubTracker Pro. Всички права запазени.
+    </div>
+</footer>
 {% endblock %}

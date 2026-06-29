@@ -3,53 +3,72 @@
 {% block title %}Архив - SubTracker{% endblock %}
 
 {% block content %}
-<div class="row mb-4 align-items-center">
-    <div class="col-md-8">
-        <h2 class="fw-extrabold mb-1"><i class="fa-solid fa-box-archive text-secondary me-2"></i> Архив</h2>
-        <p class="text-muted">Тук са всички твои прекратени абонаменти.</p>
-    </div>
-    <div class="col-md-4 text-end">
-        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary border-0 text-white px-4">
-            <i class="fa-solid fa-arrow-left me-2"></i> Назад към Дашборд
+<div class="animate__animated animate__fadeIn position-relative">
+    
+    <div class="ambient-glow" style="top: -50px; left: -50px; background: #4f46e5; opacity: 0.15; width: 300px; height: 300px; filter: blur(100px);"></div>
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 position-relative z-1 gap-3">
+        <div>
+            <h2 class="fw-extrabold mb-1 text-white d-flex align-items-center gap-3" style="font-size: 2.2rem; letter-spacing: -1px;">
+                <div class="bg-secondary bg-opacity-10 rounded-3 p-2 border border-secondary border-opacity-25 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <i class="fa-solid fa-box-archive fs-4 text-light"></i>
+                </div>
+                Архив
+            </h2>
+            <p class="text-muted mb-0 mt-2" style="font-size: 0.95rem;">Тук са всички твои прекратени абонаменти.</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn text-white d-flex align-items-center gap-2 fw-medium" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 0.6rem 1.2rem; transition: 0.3s;">
+            <i class="fa-solid fa-arrow-left"></i> Назад към началната страница
         </a>
     </div>
-</div>
 
-<div class="card shadow-lg border-0 overflow-hidden">
-    <div class="card-body p-0">
+    <div class="bento-card p-4 p-md-5 position-relative z-1">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" style="--bs-table-hover-bg: rgba(255, 255, 255, 0.02);">
-                <thead class="text-secondary small text-uppercase" style="background: rgba(255, 255, 255, 0.03);">
+            <table class="table">
+                <thead>
                     <tr>
-                        <th class="px-4 py-3">Услуга</th>
-                        <th class="py-3">Прекратен на</th>
-                        <th class="py-3 text-end">Последна цена</th>
-                        <th class="px-4 py-3 text-end">Опции</th>
+                        <th style="width: 40%;">Услуга</th>
+                        <th class="text-center">Прекратен на</th>
+                        <th class="text-end">Последна цена</th>
+                        <th class="text-end pe-4">Опции</th>
                     </tr>
                 </thead>
-                <tbody class="text-secondary">
+                <tbody>
                     {% for sub in archived_subs %}
-                    <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td class="px-4 py-3">
-                            <span class="fw-bold text-muted opacity-75">{{ sub.name }}</span>
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-secondary bg-opacity-20 rounded-3 d-flex align-items-center justify-content-center border border-secondary border-opacity-50" style="width: 42px; height: 42px;">
+                                    <i class="fa-solid fa-ban text-white-50 fs-6"></i>
+                                </div>
+                                <span class="fw-bold text-white" style="font-size: 1.05rem;">{{ sub.name }}</span>
+                            </div>
                         </td>
-                        <td class="py-3 small">
-                            {{ sub.start_date|date:"d M Y" }}
+                        
+                        <td class="text-center">
+                            <span class="badge-glass text-light border-secondary" style="font-size: 0.85rem; background: rgba(255,255,255,0.08);">
+                                {% if sub.updated_at %}{{ sub.updated_at|date:"d M Y" }}{% else %}Архивиран{% endif %}
+                            </span>
                         </td>
-                        <td class="py-3 text-end fw-semibold">
-                            {{ sub.price }} {{ sub.currency }}
+                        
+                        <td class="text-end text-nowrap">
+                            <span class="fw-bold text-white fs-5">{{ sub.price }}</span> 
+                            <span class="text-muted small ms-1 fw-bold">{{ sub.currency }}</span>
                         </td>
-                        <td class="px-4 py-3 text-end">
-                            <a href="{% url 'reactivate_subscription' sub.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold">
-                                <i class="fa-solid fa-rotate-left me-1"></i> Възстанови
+                        
+                        <td class="text-end pe-2 text-nowrap">
+                            <a href="{% url 'reactivate_subscription' sub.id %}" class="btn d-inline-flex align-items-center fw-bold" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #34d399; border-radius: 8px; padding: 0.4rem 0.9rem; font-size: 0.85rem; transition: 0.3s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
+                                <i class="fa-solid fa-rotate-left me-2"></i> Възстанови
                             </a>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
                         <td colspan="4" class="text-center py-5">
-                            <i class="fa-regular fa-folder-closed display-4 d-block mb-3 opacity-25"></i>
-                            <p class="mb-0">Няма прекратени абонаменти.</p>
+                            <div class="text-muted opacity-50 py-4">
+                                <i class="fa-solid fa-wind fs-1 mb-3"></i>
+                                <p class="mb-0">Архивът е празен. Нямаш прекратени абонаменти.</p>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}

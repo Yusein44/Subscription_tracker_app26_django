@@ -1,36 +1,276 @@
 {% extends 'subscriptions/base.html' %}
 
+{% block title %}Оторизация - SubTracker Pro{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+    body {
+        cursor: none;
+        overflow: hidden; 
+    }
+
+    .outfit-font { font-family: 'Outfit', sans-serif !important; }
+
+    /* Къстъм Курсор */
+    .cursor-dot {
+        width: 8px; height: 8px; background: #D4AF37;
+        border-radius: 50%; position: fixed; pointer-events: none;
+        z-index: 9999; transform: translate(-50%, -50%);
+        box-shadow: 0 0 15px #D4AF37;
+    }
+    .cursor-outline {
+        width: 40px; height: 40px; border: 1px solid rgba(212, 175, 55, 0.5);
+        border-radius: 50%; position: fixed; pointer-events: none;
+        z-index: 9998; transform: translate(-50%, -50%);
+        transition: width 0.2s, height 0.2s, background 0.2s;
+    }
+
+    .split-screen-wrapper {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        display: flex;
+        flex-direction: row; 
+        z-index: 1050; 
+        background-color: #020617;
+    }
+
+    /* ЛЯВА ЧАСТ: ФОРМА ЗА ВХОД */
+    .form-side {
+        flex: 0 0 550px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 3rem 4rem;
+        background: radial-gradient(circle at 0% 50%, rgba(10, 22, 47, 0.8) 0%, #020617 100%);
+        position: relative;
+        z-index: 2;
+        border-right: 1px solid rgba(255,255,255,0.05);
+    }
+
+    #particles-js {
+        position: absolute; width: 100%; height: 100%;
+        top: 0; left: 0; z-index: 0; pointer-events: none;
+    }
+
+    .image-side {
+        flex: 1;
+        position: relative;
+        background-image: 
+            linear-gradient(135deg, rgba(2, 6, 23, 0.3) 0%, rgba(2, 6, 23, 0.95) 100%),
+            url('https://images.unsplash.com/photo-1618044733300-9472054094ee?q=80&w=2071&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 5rem;
+        overflow: hidden;
+    }
+
+    .image-overlay-glow {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 800px; height: 800px;
+        background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 60%);
+        filter: blur(80px); pointer-events: none; z-index: 1;
+    }
+
+    /* Гласморфизъм Форма с 3D ефект */
+    .login-glass-card {
+        background: linear-gradient(145deg, rgba(10, 22, 47, 0.4), rgba(4, 10, 24, 0.6));
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 30px;
+        padding: 3rem; width: 100%; position: relative; z-index: 10;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 20px rgba(212, 175, 55, 0.05);
+        transform-style: preserve-3d;
+    }
+
+    /* Анимиран Биометричен Скенер */
+    .biometric-scanner {
+        position: relative; width: 70px; height: 70px; margin: 0 auto 1.5rem auto;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 18px; background: rgba(212,175,55,0.05);
+        border: 1px solid rgba(212,175,55,0.2); overflow: hidden;
+        transform: translateZ(40px);
+    }
+    .biometric-icon { font-size: 2rem; color: #D4AF37; opacity: 0.5; }
+    .scan-line {
+        position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+        background: #fff; box-shadow: 0 0 15px 3px #D4AF37;
+        animation: scan 2.5s ease-in-out infinite;
+    }
+    @keyframes scan {
+        0%, 100% { top: 0; opacity: 0; }
+        10%, 90% { opacity: 1; }
+        50% { top: 100%; }
+    }
+
+    /* Полета за писане */
+    .cyber-input {
+        background: rgba(0, 0, 0, 0.3) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important; border-radius: 12px; padding: 1.2rem;
+        font-weight: 500; transition: all 0.3s; transform: translateZ(20px);
+    }
+    .cyber-input:focus {
+        border-color: #D4AF37 !important; box-shadow: 0 0 20px rgba(212, 175, 55, 0.2) !important;
+        background: rgba(255, 255, 255, 0.07) !important; outline: none;
+    }
+    .cyber-label {
+        transform: translateZ(15px); display: inline-block; color: #94a3b8;
+        font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px;
+        font-weight: 700; margin-bottom: 0.8rem;
+    }
+
+    /* Бутон за вход */
+    .btn-god-mode {
+        background: linear-gradient(135deg, #FFE066, #D4AF37); color: #020617;
+        font-weight: 800; border: none; border-radius: 12px; padding: 1.2rem;
+        width: 100%; text-transform: uppercase; letter-spacing: 2px;
+        box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4); transition: all 0.3s;
+        transform: translateZ(30px); cursor: none; margin-top: 1rem;
+    }
+    .btn-god-mode:hover {
+        box-shadow: 0 15px 40px rgba(212, 175, 55, 0.6), 0 0 20px #FFF5B3;
+        transform: translateZ(35px) scale(1.02);
+    }
+
+    .text-gold { background: linear-gradient(135deg, #FFF5B3, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .back-btn {
+        position: absolute; top: 2rem; left: 2rem; z-index: 20;
+        color: #94a3b8; text-decoration: none; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem;
+        transition: 0.3s; cursor: none; display: flex; align-items: center; gap: 10px;
+    }
+    .back-btn:hover { color: #D4AF37; }
+
+    /* Responsive */
+    @media (max-width: 991.98px) {
+        .image-side { display: none !important; }
+        .form-side { flex: 1; padding: 1rem; border-right: none; }
+        .split-screen-wrapper { flex-direction: column; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="card shadow-lg p-4">
-            <h3 class="fw-bold mb-4 text-center">Вход в системата</h3>
-            <form method="post">
+<div class="cursor-dot"></div>
+<div class="cursor-outline"></div>
+
+<div class="split-screen-wrapper animate__animated animate__fadeIn">
+    
+    <div class="form-side">
+        <a href="{% url 'landing' %}" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Назад към сайта</a>
+        
+        <div id="particles-js"></div>
+        
+        <div class="login-glass-card" data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.1">
+            
+            <div class="text-center mb-4" style="transform: translateZ(40px);">
+                <div class="biometric-scanner">
+                    <i class="fa-solid fa-fingerprint biometric-icon"></i>
+                    <div class="scan-line"></div>
+                </div>
+                
+                <h2 class="fw-extrabold text-white mb-2 outfit-font">Добре дошъл!</h2>
+                <p class="text-muted small text-uppercase" style="letter-spacing: 2px;">Идентификация на потребител</p>
+            </div>
+
+            <form method="POST">
                 {% csrf_token %}
-                {% for field in form %}
-                    <div class="mb-3">
-                        <label class="form-label small text-secondary">{{ field.label }}</label>
-                        {{ field }}
+                
+                <div class="mb-4">
+                    <label class="cyber-label">Потребителско име</label>
+                    <input type="text" name="username" class="form-control cyber-input" placeholder="Въведи своето име" required>
+                </div>
+                
+                <div class="mb-5">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="cyber-label mb-0">Парола</label>
+                        <a href="#" class="text-gold small text-decoration-none" style="transform: translateZ(15px); font-weight: 700;">Забравена?</a>
                     </div>
-                {% endfor %}
-                <button type="submit" class="btn btn-primary w-100 py-2 mt-3">Влез</button>
+                    <input type="password" name="password" class="form-control cyber-input" placeholder="••••••••" required>
+                </div>
+                
+                <button type="submit" class="btn-god-mode">
+                    Инициализирай Вход <i class="fa-solid fa-arrow-right ms-2"></i>
+                </button>
             </form>
-            <div class="mt-4 text-center small">
-                <span class="text-secondary">Нямаш профил?</span> 
-                <a href="{% url 'signup' %}" class="text-decoration-none" style="color: var(--accent-color);">Регистрирай се</a>
+
+            <div class="text-center mt-5" style="transform: translateZ(20px);">
+                <p class="text-muted small mb-0" style="letter-spacing: 0.5px;">
+                    Нямаш достъп до системата? <br>
+                    <a href="{% url 'signup' %}" class="text-gold fw-bold text-decoration-none mt-2 d-inline-block" style="border-bottom: 1px dashed rgba(212,175,55,0.5);">Поискай оторизация</a>
+                </p>
             </div>
         </div>
     </div>
-</div>
 
-<style>
-    input {
-        background-color: #0f172a !important;
-        border: 1px solid #334155 !important;
-        color: white !important;
-        border-radius: 8px !important;
-        padding: 10px !important;
-        width: 100%;
-    }
-</style>
+    <div class="image-side d-none d-lg-flex">
+        <div class="image-overlay-glow"></div>
+        
+        <div style="z-index: 2; margin-top: auto; margin-bottom: 3rem;">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <i class="fa-solid fa-layer-group fs-1" style="color: #D4AF37;"></i>
+                <h3 class="text-white outfit-font mb-0 fs-2 fw-bold">SubTracker <span style="font-weight: 300;">Pro</span></h3>
+            </div>
+            
+            <h1 class="display-3 fw-bolder text-white outfit-font mb-4" style="line-height: 1.1;">Контролът <br>в твои ръце.</h1>
+            <p class="fs-5" style="color: #cbd5e1; max-width: 550px;">Изкуствен интелект и 3D визуализация се срещат, за да ти дадат пълен финансов поглед над бизнеса ти.</p>
+        </div>
+
+        <div class="mt-auto p-4 rounded-4" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); border-left: 3px solid #D4AF37; max-width: 450px; z-index: 2;">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="spinner-grow text-success" style="width: 12px; height: 12px;" role="status"></div>
+                <span class="text-white fw-bold outfit-font text-uppercase letter-spacing-1">Невронна Мрежа: Активна</span>
+            </div>
+            <p class="text-muted small mb-0" style="font-family: monospace;">Връзката е криптирана (AES-256). Очаква се потвърждение на биометричните данни за достъп.</p>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+
+<script>
+    const cursorDot = document.querySelector('.cursor-dot');
+    const cursorOutline = document.querySelector('.cursor-outline');
+    const interactables = document.querySelectorAll('a, button, input');
+
+    window.addEventListener('mousemove', function (e) {
+        cursorDot.style.left = `${e.clientX}px`; cursorDot.style.top = `${e.clientY}px`;
+        cursorOutline.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 150, fill: "forwards" });
+    });
+
+    interactables.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            cursorOutline.style.width = '60px'; cursorOutline.style.height = '60px';
+            cursorOutline.style.background = 'rgba(212, 175, 55, 0.1)';
+        });
+        el.addEventListener('mouseleave', () => {
+            cursorOutline.style.width = '40px'; cursorOutline.style.height = '40px';
+            cursorOutline.style.background = 'transparent';
+        });
+    });
+
+    particlesJS("particles-js", {
+        "particles": {
+            "number": { "value": 40 },
+            "color": { "value": "#D4AF37" },
+            "shape": { "type": "circle" },
+            "opacity": { "value": 0.2 },
+            "size": { "value": 3 },
+            "line_linked": { "enable": true, "distance": 150, "color": "#D4AF37", "opacity": 0.1, "width": 1 },
+            "move": { "enable": true, "speed": 1 }
+        },
+        "interactivity": {
+            "events": { "onhover": { "enable": true, "mode": "grab" } },
+            "modes": { "grab": { "distance": 150, "line_linked": { "opacity": 0.3 } } }
+        }
+    });
+</script>
 {% endblock %}

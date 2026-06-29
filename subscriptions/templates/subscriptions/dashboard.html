@@ -1,239 +1,473 @@
 {% extends 'subscriptions/base.html' %}
 
+{% block title %}Табло - SubTracker Pro{% endblock %}
+
 {% block extra_head %}
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            cursor: none;
+            background-color: #020617 !important; 
+            background-image: 
+                radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.15), transparent 45%),
+                radial-gradient(circle at 20% 80%, rgba(56, 189, 248, 0.1), transparent 40%),
+                linear-gradient(135deg, rgba(2, 6, 23, 0.45) 0%, rgba(6, 15, 38, 0.65) 100%),
+                url('https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2070&auto=format&fit=crop') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-attachment: fixed !important;
+            overflow-x: hidden;
+        }
+
+        #particles-js {
+            position: fixed; width: 100vw; height: 100vh;
+            top: 0; left: 0; z-index: 0; pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px; height: 8px; background: #D4AF37;
+            border-radius: 50%; position: fixed; pointer-events: none;
+            z-index: 9999; transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px #D4AF37;
+        }
+        
+        .cursor-outline {
+            width: 40px; height: 40px; border: 1px solid rgba(212, 175, 55, 0.5);
+            border-radius: 50%; position: fixed; pointer-events: none;
+            z-index: 9998; transform: translate(-50%, -50%);
+            transition: width 0.2s, height 0.2s, background 0.2s;
+        }
+
+        .outfit-font { font-family: 'Outfit', sans-serif !important; }
+
+        /* 2. 3D СТЪКЛЕНИ ПАНЕЛИ (GLASSMORPHISM) */
+        .glass-panel {
+            background: linear-gradient(145deg, rgba(10, 22, 47, 0.65), rgba(4, 10, 24, 0.85));
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: 24px;
+            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transition: border-color 0.3s;
+        }
+        .glass-panel:hover {
+            border-color: rgba(212, 175, 55, 0.4);
+            box-shadow: 0 35px 65px -15px rgba(0,0,0,0.9), inset 0 0 20px rgba(212, 175, 55, 0.05);
+        }
+
+        .pop-out { transform: translateZ(30px); }
+        .pop-out-sm { transform: translateZ(15px); }
+
+        /* 3. ЗЛАТНИ АКЦЕНТИ И БУТОНИ */
+        .text-gold {
+            background: linear-gradient(135deg, #FFF5B3, #D4AF37);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #FFE066, #D4AF37);
+            color: #040914 !important; font-weight: 700; border: none;
+            border-radius: 12px; padding: 0.6rem 1.6rem; cursor: none;
+            box-shadow: 0 8px 20px -8px rgba(212, 175, 55, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85rem;
+        }
+        .btn-gold:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 15px 25px -8px rgba(212, 175, 55, 0.7);
+            background: linear-gradient(135deg, #FFF5B3, #E5C07B);
+        }
+
+        .btn-outline-gold {
+            background: rgba(212, 175, 55, 0.03); color: #D4AF37;
+            font-weight: 700; border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px; padding: 0.6rem 1.6rem; cursor: none;
+            transition: all 0.3s ease; text-transform: uppercase;
+            letter-spacing: 0.5px; font-size: 0.85rem; text-decoration: none;
+        }
+        .btn-outline-gold:hover {
+            background: rgba(212, 175, 55, 0.12); color: #FFF099; border-color: #D4AF37;
+        }
+
+        /* 4. ПРЕМИУМ ТАБЛИЦА */
+        .table-premium { --bs-table-bg: transparent; --bs-table-color: #e2e8f0; }
+        .table-premium thead th {
+            color: #94a3b8; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.5px; font-size: 0.7rem;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.25); padding-bottom: 1.2rem;
+        }
+        .table-premium tbody tr {
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.05); transition: background 0.2s;
+        }
+        .table-premium tbody tr:hover { background: rgba(212, 175, 55, 0.05); }
+        
+        .badge-glass-gold {
+            background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.2);
+            color: #D4AF37; padding: 0.45em 0.85em; border-radius: 8px;
+            font-weight: 600; font-size: 0.75rem; letter-spacing: 0.5px;
+        }
+        
+        .action-icon {
+            color: #94a3b8; background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05); width: 34px; height: 34px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 8px; transition: all 0.2s; text-decoration: none; cursor: none;
+        }
+        .action-icon:hover { 
+            color: #D4AF37; background: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 0.3);
+        }
+        .action-icon.delete:hover { 
+            color: #ef4444; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .system-core {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 2px dashed rgba(56, 189, 248, 0.5);
+            animation: spin 15s linear infinite;
+            display: flex; justify-content: center; align-items: center;
+            position: relative;
+        }
+        .system-core::before {
+            content: ''; position: absolute; width: 80px; height: 80px;
+            border-radius: 50%; border: 2px solid #D4AF37;
+            animation: spin-reverse 10s linear infinite;
+        }
+        .system-core::after {
+            content: ''; position: absolute; width: 40px; height: 40px;
+            border-radius: 50%; background: #D4AF37;
+            box-shadow: 0 0 30px #D4AF37; animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } }
+
+        .audit-item {
+            border-left: 2px solid rgba(56, 189, 248, 0.3); padding-left: 1rem;
+            position: relative; margin-bottom: 1.5rem;
+        }
+        .audit-item::before {
+            content: ''; position: absolute; left: -6px; top: 5px;
+            width: 10px; height: 10px; background: #38bdf8;
+            border-radius: 50%; box-shadow: 0 0 10px #38bdf8;
+        }
+
+        /* ФУТЪР */
+        .premium-footer {
+            border-top: 1px solid rgba(212, 175, 55, 0.15); padding-top: 4rem;
+            padding-bottom: 2rem; margin-top: 6rem; position: relative; z-index: 1;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-4 animate__animated animate__fadeIn">
-    <div>
-        <p class="text-muted mb-1 text-uppercase fw-bold" style="letter-spacing: 2px; font-size: 0.75rem;">Анализ на разходите</p>
-        <h2 class="fw-extrabold mb-0 text-white" style="font-size: 2.5rem; letter-spacing: -1px;">{{ company_name }}</h2>
-    </div>
-</div>
+<div class="cursor-dot"></div>
+<div class="cursor-outline"></div>
+<div id="particles-js"></div>
 
-<div class="row g-4 mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+<div class="container-fluid px-4 position-relative z-1">
     
-    <div class="col-xl-8">
-        <div class="bento-card h-100 p-4 p-md-5 d-flex flex-column justify-content-center relative">
-            <div class="ambient-glow" style="top: -50px; right: -50px; background: #38bdf8;"></div>
-            
-            <div class="row align-items-center position-relative z-1">
-                <div class="col-md-5 mb-4 mb-md-0 border-md-end border-secondary border-opacity-25">
-                    <p class="text-muted text-uppercase fw-bold mb-2" style="font-size: 0.75rem; letter-spacing: 1px;">Общо на месец</p>
-                    <div class="d-flex align-items-baseline gap-1">
-                        <h1 class="fw-extrabold mb-0 gradient-text" style="font-size: 3.5rem; letter-spacing: -2px;">{{ total_monthly }}</h1>
-                        <span class="fs-5 text-muted fw-bold">лв.</span>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-4 animate__animated animate__fadeIn">
+        <div>
+            <div class="d-flex align-items-center gap-3 mb-1">
+                <p class="text-muted mb-0 text-uppercase fw-bold" style="letter-spacing: 2px; font-size: 0.75rem;">Невронен Анализ</p>
+                <span class="badge-glass-gold"><i class="fa-solid fa-bolt text-gold me-1"></i> Оптимизиран</span>
+            </div>
+            <h2 class="fw-extrabold mb-0 text-white outfit-font" style="font-size: 2.8rem; letter-spacing: -1px;">{{ company_name }}</h2>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+        <div class="col-xl-8">
+            <div class="glass-panel h-100 p-4 p-md-5 d-flex flex-column justify-content-center" data-tilt data-tilt-max="3" data-tilt-glare="true" data-tilt-max-glare="0.1">
+                <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: #D4AF37; filter: blur(100px); opacity: 0.15; z-index: 0; pointer-events: none;"></div>
+                <div class="row align-items-center position-relative z-1">
+                    <div class="col-md-5 mb-4 mb-md-0 border-md-end border-secondary border-opacity-25 pop-out">
+                        <p class="text-muted text-uppercase fw-bold mb-2" style="font-size: 0.75rem; letter-spacing: 1px;">Общо на месец</p>
+                        <div class="d-flex align-items-baseline gap-2">
+                            <h1 class="fw-extrabold mb-0 text-gold outfit-font" style="font-size: 4rem; letter-spacing: -2px;">{{ total_monthly }}</h1>
+                            <span class="fs-5 text-muted fw-bold">лв.</span>
+                        </div>
+                    </div>
+                    <div class="col-md-7 ps-md-5 pop-out-sm">
+                        <div class="d-flex justify-content-between align-items-end mb-2">
+                            <div>
+                                <span class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">Бюджетен лимит</span>
+                                <span class="fw-bold fs-5 text-white outfit-font">{{ total_monthly }} <span class="text-muted fs-6 fw-normal">/ {{ budget }} лв.</span></span>
+                            </div>
+                            <span class="badge {% if is_over_budget %}bg-danger text-white{% else %}bg-success bg-opacity-10 text-success border border-success border-opacity-25{% endif %} rounded-pill px-3 py-2 fw-bold" style="font-size: 0.8rem; box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);">
+                                {% if is_over_budget %}⚠️ Превишен{% else %}<i class="fa-solid fa-shield-check me-1"></i> В норма{% endif %}
+                            </span>
+                        </div>
+                        <div class="progress mt-3" style="height: 10px; background-color: rgba(255,255,255,0.05); border-radius: 10px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);">
+                            <div class="progress-bar" role="progressbar" style="width: {{ percent }}%; border-radius: 10px; background: {% if is_over_budget %}#ef4444{% elif percent > 80 %}#f59e0b{% else %}linear-gradient(90deg, #D4AF37, #FFF099){% endif %}; box-shadow: 0 0 20px {% if is_over_budget %}rgba(239, 68, 68, 0.6){% else %}rgba(212, 175, 55, 0.6){% endif %};"></div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="col-md-7 ps-md-5">
-                    <div class="d-flex justify-content-between align-items-end mb-2">
-                        <div>
-                            <span class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">Изразходван бюджет</span>
-                            <span class="fw-bold fs-5 text-white">{{ total_monthly }} <span class="text-muted fs-6 fw-normal">/ {{ budget }} лв.</span></span>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            {% if saved_monthly > 0 %}
+            <div class="glass-panel h-100 p-4" data-tilt data-tilt-max="5" data-tilt-glare="true" data-tilt-max-glare="0.2" style="background: linear-gradient(145deg, rgba(212, 175, 55, 0.08) 0%, rgba(4, 10, 24, 0.85) 100%); border-color: rgba(212,175,55,0.4);">
+                <div class="d-flex flex-column h-100 justify-content-center pop-out">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(212,175,55,0.15); border: 1px solid #D4AF37; box-shadow: 0 0 15px rgba(212,175,55,0.3);">
+                            <i class="fa-solid fa-bolt text-gold fs-5"></i>
                         </div>
-                        <span class="badge {% if is_over_budget %}bg-danger text-white{% else %}bg-success bg-opacity-10 text-success border border-success border-opacity-25{% endif %} rounded-pill px-3 py-2">
-                            {% if is_over_budget %}⚠️ Превишен{% else %}✅ В норма{% endif %}
-                        </span>
+                        <h5 class="fw-bold text-white mb-0 outfit-font">Оптимизация</h5>
                     </div>
-                    
-                    <div class="progress mt-3" style="height: 6px; background-color: rgba(255,255,255,0.05); border-radius: 10px;">
-                        <div class="progress-bar" role="progressbar" 
-                             style="width: {{ percent }}%; border-radius: 10px; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-                                    background: {% if is_over_budget %}#ef4444{% elif percent > 80 %}#f59e0b{% else %}linear-gradient(90deg, #38bdf8, #4f46e5){% endif %};
-                                    box-shadow: 0 0 10px {% if is_over_budget %}rgba(239, 68, 68, 0.5){% else %}rgba(79, 70, 229, 0.5){% endif %};">
-                        </div>
-                    </div>
-                    
-                    {% if is_over_budget %}
-                    <p class="text-danger small mt-2 mb-0 fw-semibold">
-                        Внимание: Надвишавате зададения фирмен бюджет!
+                    <p class="text-light-silver small mb-0 lh-lg">Прекратили сте <strong class="text-white">{{ canceled_count }}</strong> абонамента. <br>Месечен AI дивидент: <br>
+                        <span class="text-gold outfit-font d-block mt-1" style="font-size: 2.5rem; text-shadow: 0 0 20px rgba(212,175,55,0.4);">+{{ saved_monthly }} лв.</span>
                     </p>
-                    {% endif %}
                 </div>
             </div>
+            {% else %}
+            <div class="glass-panel h-100 p-4 d-flex align-items-center justify-content-center text-center" data-tilt data-tilt-max="5" style="border: 2px dashed rgba(212,175,55,0.2) !important; background: rgba(0,0,0,0.2);">
+                <div class="pop-out">
+                    <i class="fa-solid fa-leaf text-muted fs-2 mb-3 opacity-50"></i>
+                    <p class="text-muted small mb-0">Бюджетът е напълно чист.<br>Няма прекратени абонаменти.</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 
-    <div class="col-xl-4">
-        {% if saved_monthly > 0 %}
-        <div class="bento-card h-100 p-4" style="background: linear-gradient(145deg, rgba(245, 158, 11, 0.05) 0%, rgba(20, 20, 24, 0.6) 100%);">
-            <div class="d-flex flex-column h-100 justify-content-center">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; border: 1px solid rgba(245, 158, 11, 0.2);">
-                        <i class="fa-solid fa-bolt text-warning fs-5"></i>
+    <div class="row g-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+        <div class="col-xl-8">
+            <div class="glass-panel h-100 p-4 p-md-5">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 pop-out-sm">
+                    <h4 class="fw-bold mb-0 text-white outfit-font">Активни абонаменти</h4>
+                    <div class="d-flex gap-2 align-items-center">
+                        <a href="{% url 'export_csv' %}" class="btn-outline-gold"><i class="fa-solid fa-file-csv me-2"></i> Експорт</a>
+                        <a href="{% url 'add_subscription' %}" class="btn-gold"><i class="fa-solid fa-plus me-1"></i> Добави</a>
                     </div>
-                    <h5 class="fw-bold text-white mb-0">Оптимизация</h5>
                 </div>
-                <p class="text-light opacity-75 small mb-0 lh-lg">
-                    Прекратили сте <strong class="text-white">{{ canceled_count }}</strong> абонамента. <br>
-                    Месечно спестяване: <br>
-                    <span class="text-warning fw-extrabold fs-3 d-block mt-1">+{{ saved_monthly }} лв.</span>
-                </p>
-            </div>
-        </div>
-        {% else %}
-        <div class="bento-card h-100 p-4 d-flex align-items-center justify-content-center text-center border-dashed" style="border-style: dashed !important; border-color: rgba(255,255,255,0.05) !important;">
-            <div>
-                <i class="fa-solid fa-leaf text-muted fs-3 mb-2 opacity-50"></i>
-                <p class="text-muted small mb-0">Бюджетът е напълно чист.<br>Няма прекратени абонаменти.</p>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-</div>
 
-<div class="row g-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-    
-    <div class="col-xl-8">
-        <div class="bento-card h-100 p-4 p-md-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold mb-0 text-white">Активни абонаменти</h5>
-                <a href="{% url 'add_subscription' %}" class="btn-neon">
-                    <i class="fa-solid fa-plus me-1"></i> Добави
-                </a>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th style="width: 30%;">Услуга</th>
-                            <th>Отдел</th>
-                            <th class="text-center">Документ</th>
-                            <th class="text-end" style="width: 20%;">Сума</th>
-                            <th class="text-end pe-4" style="width: 15%;">Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for sub in subscriptions %}
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="bg-secondary bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center border border-secondary border-opacity-25" style="width: 42px; height: 42px;">
-                                        <i class="fa-solid fa-cube text-light fs-6"></i>
+                <div class="table-responsive mt-2">
+                    <table class="table table-premium align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 35%;">Услуга</th><th>Отдел</th><th class="text-center">Документ</th>
+                                <th class="text-end" style="width: 20%;">Сума</th><th class="text-end pe-2" style="width: 15%;">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sub in subscriptions %}
+                            <tr style="cursor: none;">
+                                <td class="py-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                                            <i class="fa-solid fa-cube text-muted fs-6"></i>
+                                        </div>
+                                        <span class="fw-bold text-white fs-6">{{ sub.name }}</span>
                                     </div>
-                                    <span class="fw-bold text-white">{{ sub.name }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                {% if sub.department %}
-                                    <span class="badge-glass">{{ sub.department.name }}</span>
-                                {% else %}
-                                    <span class="text-muted small">—</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                {% if sub.is_ai_extracted %}
-                                    <span class="badge-glass text-success border-success" style="background: rgba(16, 185, 129, 0.1);" title="Анализирано от AI">
-                                        <i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI
-                                    </span>
-                                {% elif sub.invoice_file %}
-                                    <a href="{{ sub.invoice_file.url }}" target="_blank" class="badge-glass text-info border-info text-decoration-none" style="background: rgba(14, 165, 233, 0.1);">
-                                        <i class="fa-solid fa-file-invoice me-1"></i> PDF
-                                    </a>
-                                {% else %}
-                                    <span class="text-muted small">—</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-end text-nowrap">
-                                <span class="fw-bold text-white fs-6">{{ sub.price }}</span> 
-                                <span class="text-muted small ms-1">{{ sub.currency }}</span>
-                            </td>
-                            <td class="text-end pe-2 text-nowrap">
-                                <a href="{% url 'edit_subscription' sub.id %}" class="action-icon" title="Редактирай">
-                                    <i class="fa-solid fa-pen"></i>
-                                </a>
-                                <a href="{% url 'cancel_subscription' sub.id %}" class="action-icon delete" onclick="return confirm('Сигурен ли си, че спираш този абонамент?');" title="Прекрати">
-                                    <i class="fa-solid fa-xmark fs-5"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center py-5">
-                                <div class="text-muted opacity-50 py-4">
-                                    <i class="fa-brands fa-space-awesome fs-1 mb-3"></i>
-                                    <p class="mb-0">Празно пространство. Добави първия си абонамент.</p>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </td>
+                                <td class="py-3">{% if sub.department %}<span class="badge-glass-gold">{{ sub.department.name }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                                <td class="text-center py-3">
+                                    {% if sub.is_ai_extracted %}<span class="badge-glass-gold"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI</span>
+                                    {% elif sub.invoice_file %}<a href="{{ sub.invoice_file.url }}" target="_blank" class="badge-glass-gold text-decoration-none" style="color: #38bdf8; border-color: rgba(56,189,248,0.3); background: rgba(56,189,248,0.1);"><i class="fa-solid fa-file-invoice me-1"></i> PDF</a>
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                                <td class="text-end text-nowrap py-3"><span class="fw-bold text-white fs-6 outfit-font">{{ sub.price }}</span> <span class="text-muted small ms-1">{{ sub.currency }}</span></td>
+                                <td class="text-end text-nowrap py-3">
+                                    <a href="{% url 'edit_subscription' sub.id %}" class="action-icon me-1"><i class="fa-solid fa-pen small"></i></a>
+                                    <a href="{% url 'cancel_subscription' sub.id %}" class="action-icon delete" onclick="return confirm('Сигурен ли си?');"><i class="fa-solid fa-xmark"></i></a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center py-5"><div class="text-muted opacity-50 py-4"><i class="fa-brands fa-space-awesome fs-1 mb-3"></i><p class="mb-0 outfit-font fs-5">Базата данни е празна.</p></div></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 d-flex flex-column gap-4">
+
+            <a href="{% url 'analytics' %}" class="glass-panel p-4 text-decoration-none d-flex justify-content-between align-items-center" data-tilt data-tilt-max="5" style="border: 1px solid rgba(56, 189, 248, 0.4); background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(4, 10, 24, 0.8) 100%); cursor: none;">
+                <div>
+                    <h5 class="fw-bold text-white outfit-font mb-1"><i class="fa-solid fa-eye text-info me-2"></i> Дълбок Анализ</h5>
+                    <p class="text-muted small mb-0">Влез в Оракула (AI Прогнози)</p>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: rgba(56, 189, 248, 0.2);">
+                    <i class="fa-solid fa-arrow-right text-info"></i>
+                </div>
+            </a>
+            <div class="glass-panel p-4 d-flex flex-column" data-tilt data-tilt-max="4" style="min-height: 320px;">
+                <h5 class="fw-bold mb-4 text-white outfit-font pop-out-sm">Разпределение</h5>
+                <div class="flex-grow-1 position-relative d-flex justify-content-center align-items-center pop-out">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #D4AF37; width: 120px; height: 120px; filter: blur(80px); opacity: 0.15; pointer-events: none;"></div>
+                    <div style="position: relative; z-index: 1; width: 100%; height: 220px;">
+                        <canvas id="expensesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-4" data-tilt data-tilt-max="3">
+                <h5 class="fw-bold mb-3 d-flex align-items-center gap-2 text-white outfit-font pop-out-sm">
+                    <i class="fa-regular fa-calendar-check text-gold"></i> Предстоящи
+                </h5>
+                <div class="d-flex flex-column gap-2 mt-3 pop-out-sm">
+                    {% for payment in upcoming_payments %}
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded-4" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);">
+                        <div>
+                            <p class="mb-1 fw-bold text-white" style="font-size: 0.95rem;">{{ payment.name }}</p>
+                            <p class="mb-0 text-muted fw-medium" style="font-size: 0.75rem;">
+                                {% if payment.days_until == 0 %}<span class="badge bg-warning text-dark px-2 py-1">ДНЕС</span>{% elif payment.days_until == 1 %}Утре{% else %}След {{ payment.days_until }} дни{% endif %}
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <p class="mb-0 fw-bold text-gold outfit-font fs-6">{{ payment.amount }} <span class="text-muted small fs-6">{{ payment.currency }}</span></p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small mb-0">Няма предстоящи плащания.</p>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-xl-4 d-flex flex-column gap-4">
+    <div class="row g-4 mt-1 animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
         
-        <div class="bento-card p-4 d-flex flex-column" style="min-height: 320px;">
-            <h6 class="fw-bold mb-4 text-white">Разпределение</h6>
-            <div class="flex-grow-1 position-relative d-flex justify-content-center align-items-center">
-                <div class="ambient-glow" style="background: #c084fc; width: 100px; height: 100px; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
-                <div style="position: relative; z-index: 1; width: 100%; height: 220px;">
-                    <canvas id="expensesChart"></canvas>
+        <div class="col-12">
+            <div class="glass-panel p-4 p-md-5" data-tilt data-tilt-max="1" data-tilt-glare="true" data-tilt-max-glare="0.1">
+                <div class="d-flex justify-content-between align-items-center mb-4 pop-out-sm">
+                    <h4 class="fw-bold mb-0 text-white outfit-font d-flex align-items-center gap-3">
+                        <i class="fa-solid fa-chart-area text-gold"></i> AI Прогнозен Бюджет (6 Месеца)
+                    </h4>
+                    <span class="badge-glass-gold bg-dark bg-opacity-50"><i class="fa-solid fa-arrow-trend-down me-1"></i> Тенденция към спад</span>
+                </div>
+                <div class="pop-out" style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="forecastChart"></canvas>
                 </div>
             </div>
         </div>
 
-        {% if upcoming_payments %}
-        <div class="bento-card p-4">
-            <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 text-white">
-                <i class="fa-regular fa-clock text-info"></i> Предстоящи
-            </h6>
-            <div class="d-flex flex-column gap-2 mt-3">
-                {% for payment in upcoming_payments %}
-                <div class="d-flex justify-content-between align-items-center p-3 rounded-4" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
-                    <div>
-                        <p class="mb-1 fw-bold text-white" style="font-size: 0.9rem;">{{ payment.name }}</p>
-                        <p class="mb-0 text-muted fw-medium" style="font-size: 0.75rem;">
-                            {% if payment.days_until == 0 %}
-                                <span class="text-warning">ДНЕС</span>
-                            {% elif payment.days_until == 1 %}
-                                Утре
-                            {% else %}
-                                След {{ payment.days_until }} дни
-                            {% endif %}
-                        </p>
+        <div class="col-xl-5">
+            <div class="glass-panel p-4 p-md-5 h-100 d-flex flex-column align-items-center justify-content-center" data-tilt data-tilt-max="3">
+                <h4 class="fw-bold text-white outfit-font mb-5 w-100 text-center pop-out-sm">Сървърен Статус</h4>
+                <div class="system-core pop-out mb-5"></div>
+                <div class="row w-100 text-center pop-out-sm mt-3">
+                    <div class="col-6 border-end border-secondary border-opacity-25">
+                        <h3 class="text-white outfit-font mb-0">99.9%</h3>
+                        <p class="text-muted small text-uppercase mb-0">Uptime</p>
                     </div>
-                    <div class="text-end">
-                        <p class="mb-0 fw-bold text-white">{{ payment.amount }} <span class="text-muted small">{{ payment.currency }}</span></p>
+                    <div class="col-6">
+                        <h3 class="text-white outfit-font mb-0" style="color: #38bdf8 !important;">12ms</h3>
+                        <p class="text-muted small text-uppercase mb-0">Ping</p>
                     </div>
                 </div>
-                {% endfor %}
             </div>
         </div>
-        {% endif %}
+
+        <div class="col-xl-7">
+            <div class="glass-panel p-4 p-md-5 h-100" data-tilt data-tilt-max="2">
+                <h4 class="fw-bold mb-4 text-white outfit-font d-flex align-items-center gap-3 pop-out-sm">
+                    <i class="fa-solid fa-terminal text-info"></i> Кибер Журнал
+                </h4>
+                <div class="pop-out-sm pe-2" style="max-height: 250px; overflow-y: auto;">
+                    <div class="audit-item">
+                        <p class="text-muted small mb-1" style="font-family: monospace;">[14:02:45] SYNC_COMPLETE</p>
+                        <p class="text-light-silver mb-0 fw-medium">Базата данни е синхронизирана успешно с облака.</p>
+                    </div>
+                    <div class="audit-item">
+                        <p class="text-muted small mb-1" style="font-family: monospace;">[11:30:12] AI_EXTRACT_SUCCESS</p>
+                        <p class="text-light-silver mb-0 fw-medium">Невронният модул обработи фактура <span class="text-gold">INV-2026.pdf</span>.</p>
+                    </div>
+                    <div class="audit-item">
+                        <p class="text-muted small mb-1" style="font-family: monospace;">[Вчера, 09:15] USER_LOGIN</p>
+                        <p class="text-light-silver mb-0 fw-medium">Оторизиран достъп от IP: 192.168.1.1</p>
+                    </div>
+                    <div class="audit-item">
+                        <p class="text-muted small mb-1" style="font-family: monospace;">[Преди 2 дни] AUTO_BACKUP</p>
+                        <p class="text-light-silver mb-0 fw-medium">Създаден криптиран бекъп на финансовите данни.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </div>
 </div>
+
+<footer class="premium-footer mt-5">
+    <div class="container-fluid px-4">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <h4 class="text-white fw-bold mb-3"><i class="fa-solid fa-layer-group text-gold me-2"></i>SubTracker Pro</h4>
+                <p class="text-muted small">Водещият софтуер за управление и анализ на фирмени абонаменти.</p>
+            </div>
+        </div>
+        <div class="text-center mt-4 pt-4 border-top border-secondary border-opacity-25 text-muted small">
+            &copy; 2026 SubTracker Pro. Всички права запазени.
+        </div>
+    </div>
+</footer>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+
 <script>
+    particlesJS("particles-js", {
+        "particles": {
+            "number": { "value": 60, "density": { "enable": true, "value_area": 800 } },
+            "color": { "value": "#D4AF37" },
+            "shape": { "type": "circle" },
+            "opacity": { "value": 0.3, "random": true },
+            "size": { "value": 3, "random": true },
+            "line_linked": { "enable": true, "distance": 150, "color": "#D4AF37", "opacity": 0.15, "width": 1 },
+            "move": { "enable": true, "speed": 1.5, "direction": "none", "random": true, "out_mode": "out" }
+        },
+        "interactivity": {
+            "detect_on": "window",
+            "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
+            "modes": { "grab": { "distance": 200, "line_linked": { "opacity": 0.4 } }, "push": { "particles_nb": 4 } }
+        },
+        "retina_detect": true
+    });
+
+    // 2. КЪСТЪМ КУРСОР
+    const cursorDot = document.querySelector('.cursor-dot');
+    const cursorOutline = document.querySelector('.cursor-outline');
+    const interactables = document.querySelectorAll('a, button, input, tr, .glass-panel');
+
+    window.addEventListener('mousemove', function (e) {
+        cursorDot.style.left = `${e.clientX}px`; cursorDot.style.top = `${e.clientY}px`;
+        cursorOutline.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 150, fill: "forwards" });
+    });
+
+    interactables.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            cursorOutline.style.width = '60px'; cursorOutline.style.height = '60px';
+            cursorOutline.style.background = 'rgba(212, 175, 55, 0.1)';
+        });
+        el.addEventListener('mouseleave', () => {
+            cursorOutline.style.width = '40px'; cursorOutline.style.height = '40px';
+            cursorOutline.style.background = 'transparent';
+        });
+    });
+
     const ctx = document.getElementById('expensesChart').getContext('2d');
     const centerTextPlugin = {
         id: 'centerText',
         beforeDraw: function(chart) {
             if (chart.config.options.elements.center) {
-                const ctx = chart.ctx;
-                const centerConfig = chart.config.options.elements.center;
-                const txt = centerConfig.text;
-                
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+                const ctxC = chart.ctx;
+                const txt = chart.config.options.elements.center.text;
+                ctxC.textAlign = 'center'; ctxC.textBaseline = 'middle';
                 const centerX = ((chart.chartArea.left + chart.chartArea.right) / 2);
                 const centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
-                
-                ctx.font = "bold 32px 'Plus Jakarta Sans'";
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText(txt, centerX, centerY - 10);
-                
-                ctx.font = "600 12px 'Plus Jakarta Sans'";
-                ctx.fillStyle = '#8b8b93';
-                ctx.fillText('АБОНАМЕНТА', centerX, centerY + 15);
+                ctxC.font = "800 36px 'Outfit'"; ctxC.fillStyle = '#ffffff'; ctxC.fillText(txt, centerX, centerY - 10);
+                ctxC.font = "600 11px 'Outfit'"; ctxC.fillStyle = '#94a3b8'; ctxC.fillText('АБОНАМЕНТА', centerX, centerY + 18);
             }
         }
     };
@@ -245,35 +479,66 @@
             labels: {{ chart_labels|safe }},
             datasets: [{
                 data: {{ chart_data|safe }},
-                backgroundColor: [
-                    '#4f46e5', '#38bdf8', '#c084fc', '#f472b6', '#2dd4bf', '#fbbf24'
-                ],
-                borderWidth: 0,
-                hoverOffset: 4
+                backgroundColor: ['#D4AF37', '#e2e8f0', '#38bdf8', '#94a3b8', '#64748b', '#f59e0b'],
+                borderWidth: 0, hoverOffset: 6
             }]
         },
         options: {
-            cutout: '82%',
+            cutout: '80%', maintainAspectRatio: false,
+            elements: { center: { text: '{{ subscriptions.count }}' } },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(4, 9, 20, 0.95)', titleFont: { family: "'Outfit'", size: 14 },
+                    bodyFont: { family: "'Outfit'", size: 15, weight: 'bold' }, padding: 12, cornerRadius: 12,
+                    borderColor: 'rgba(212,175,55,0.3)', borderWidth: 1, displayColors: true, boxPadding: 6
+                }
+            }
+        }
+    });
+
+    const ctxForecast = document.getElementById('forecastChart').getContext('2d');
+    let gradient = ctxForecast.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(212, 175, 55, 0.5)');
+    gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
+
+    new Chart(ctxForecast, {
+        type: 'line',
+        data: {
+            labels: ['Юли', 'Авг', 'Сеп', 'Окт', 'Ное', 'Дек'],
+            datasets: [{
+                label: 'Прогнозен Разход (лв.)',
+                data: [5120, 4980, 4750, 4500, 4320, 4100], 
+                borderColor: '#D4AF37',
+                borderWidth: 3,
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#020617',
+                pointBorderColor: '#D4AF37',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
             maintainAspectRatio: false,
-            elements: {
-                center: {
-                    text: '{{ subscriptions.count }}'
+            scales: {
+                y: { display: false }, 
+                x: { 
+                    grid: { color: 'rgba(255,255,255,0.05)' }, 
+                    ticks: { color: '#94a3b8', font: { family: "'Outfit'", size: 14 } } 
                 }
             },
-            plugins: {
-                legend: {
-                    display: false
-                },
+            plugins: { 
+                legend: { display: false },
                 tooltip: {
-                    backgroundColor: 'rgba(15, 15, 18, 0.95)',
-                    titleFont: { family: "'Plus Jakarta Sans'", size: 13 },
-                    bodyFont: { family: "'Plus Jakarta Sans'", size: 14, weight: 'bold' },
-                    padding: 12,
-                    cornerRadius: 12,
-                    borderColor: 'rgba(255,255,255,0.1)',
-                    borderWidth: 1,
-                    displayColors: true,
-                    boxPadding: 6
+                    backgroundColor: 'rgba(4, 9, 20, 0.95)',
+                    titleFont: { family: "'Outfit'", size: 14 },
+                    bodyFont: { family: "'Outfit'", size: 15, weight: 'bold' },
+                    padding: 12, cornerRadius: 12,
+                    borderColor: 'rgba(212,175,55,0.3)', borderWidth: 1
                 }
             }
         }

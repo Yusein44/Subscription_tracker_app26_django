@@ -14,4 +14,6 @@ urlpatterns = [
     path('archive/', views.archived_subscriptions, name='archive'),
     path('reactivate/<int:pk>/', views.reactivate_subscription, name='reactivate_subscription'),
     path('settings/', views.settings, name='settings'),
+    path('export-csv/', views.export_subscriptions_csv, name='export_csv'),
+    path('analytics/', views.analytics_view, name='analytics'),
 ]

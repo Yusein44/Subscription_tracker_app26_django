@@ -1,107 +1,341 @@
 {% extends 'subscriptions/base.html' %}
 
-{% block title %}Редакция - SubTracker{% endblock %}
+{% block title %}Рекалибровка: {{ sub.name }} - SubTracker Pro{% endblock %}
 
 {% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <style>
-    .form-control, .form-select {
-        background: rgba(255, 255, 255, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    /* 1. КИБЕР МРЕЖА И ТЪМНА АТМОСФЕРА */
+    body {
+        cursor: none;
+        background-color: #020617 !important;
+        /* Cyber Grid Background */
+        background-image: 
+            radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 60%),
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px) !important;
+        background-size: 100% 100%, 40px 40px, 40px 40px !important;
+        background-attachment: fixed !important;
+        overflow-x: hidden;
+    }
+
+    .outfit-font { font-family: 'Outfit', sans-serif !important; }
+
+    /* Къстъм Курсор (Кехлибар/Злато за режим Редакция) */
+    .cursor-dot {
+        width: 8px; height: 8px; background: #f59e0b;
+        border-radius: 50%; position: fixed; pointer-events: none;
+        z-index: 9999; transform: translate(-50%, -50%);
+        box-shadow: 0 0 15px #f59e0b;
+    }
+    .cursor-outline {
+        width: 40px; height: 40px; border: 1px solid rgba(245, 158, 11, 0.5);
+        border-radius: 50%; position: fixed; pointer-events: none;
+        z-index: 9998; transform: translate(-50%, -50%);
+        transition: width 0.2s, height 0.2s, background 0.2s;
+    }
+
+    /* 2. ГЛАВНА КАРТА ЗА РЕДАКЦИЯ */
+    .recalibration-card {
+        background: linear-gradient(180deg, rgba(10, 20, 40, 0.8) 0%, rgba(2, 6, 23, 0.95) 100%);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-top: 2px solid #f59e0b;
+        border-radius: 24px;
+        box-shadow: 0 40px 100px -20px rgba(0,0,0,0.9), inset 0 20px 40px -20px rgba(245, 158, 11, 0.1);
+        position: relative;
+        transform-style: preserve-3d;
+    }
+
+    /* 3. 3D ХОЛОГРАМЕН ПРЪСТЕН */
+    .holo-container {
+        position: relative;
+        width: 100px; height: 100px;
+        margin: 0 auto 2rem auto;
+        perspective: 1000px;
+    }
+    .holo-icon {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2.5rem; color: #f59e0b;
+        text-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+        z-index: 2;
+    }
+    .holo-ring {
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%;
+        border: 2px dashed rgba(245, 158, 11, 0.6);
+        border-radius: 50%;
+        animation: rotate3D 8s linear infinite;
+        box-shadow: 0 0 20px inset rgba(245, 158, 11, 0.2);
+    }
+    .holo-ring-inner {
+        position: absolute; top: 10%; left: 10%;
+        width: 80%; height: 80%;
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        border-radius: 50%;
+        animation: rotate3DReverse 6s linear infinite;
+    }
+    @keyframes rotate3D {
+        0% { transform: rotateX(65deg) rotateZ(0deg); }
+        100% { transform: rotateX(65deg) rotateZ(360deg); }
+    }
+    @keyframes rotate3DReverse {
+        0% { transform: rotateX(65deg) rotateZ(360deg); }
+        100% { transform: rotateX(65deg) rotateZ(0deg); }
+    }
+
+    /* 4. ТЕРМИНАЛНИ ПОЛЕТА (Inputs) */
+    .terminal-input {
+        background: rgba(0, 0, 0, 0.4) !important;
+        border: none !important;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
         color: #fcfcfd !important;
-        border-radius: 12px;
-        padding: 0.8rem 1.2rem;
+        border-radius: 8px 8px 0 0;
+        padding: 1rem 1.2rem;
         transition: all 0.3s ease;
         font-weight: 500;
-        backdrop-filter: blur(10px);
+        font-family: monospace;
+        font-size: 1.05rem;
     }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: #f59e0b !important;
-        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15) !important;
-        background: rgba(255, 255, 255, 0.06) !important;
+    .terminal-input:focus {
+        border-bottom: 2px solid #f59e0b !important;
+        background: linear-gradient(180deg, rgba(245, 158, 11, 0.0) 0%, rgba(245, 158, 11, 0.1) 100%) !important;
+        box-shadow: none !important;
+        transform: translateY(-2px);
     }
 
-    .form-control[type="file"] { padding: 0.5rem; }
     .form-control[type="file"]::file-selector-button {
         background: rgba(245, 158, 11, 0.1);
-        border: 1px solid rgba(245, 158, 11, 0.2);
-        padding: 0.5rem 1rem;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        padding: 0.6rem 1.2rem;
         border-radius: 8px;
-        color: #fcd34d;
+        color: #f59e0b;
         margin-right: 1rem;
         transition: all 0.2s ease;
-        cursor: pointer;
-        font-weight: 600;
+        cursor: none;
+        font-weight: 700;
+        text-transform: uppercase;
     }
-    .form-control[type="file"]::file-selector-button:hover { background: rgba(245, 158, 11, 0.2); }
+    .form-control[type="file"]::file-selector-button:hover { background: rgba(245, 158, 11, 0.2); color: #fff; }
 
     .custom-label {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-weight: 700;
-        color: var(--text-muted);
-        margin-bottom: 0.5rem;
+        font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px;
+        font-weight: 700; color: #94a3b8; margin-bottom: 0.5rem;
     }
 
     ::-webkit-calendar-picker-indicator {
-        filter: invert(1);
-        opacity: 0.5;
-        cursor: pointer;
-        transition: 0.2s;
+        filter: invert(70%) sepia(80%) saturate(1500%) hue-rotate(350deg);
+        opacity: 0.8; cursor: none; transition: 0.2s;
     }
-    ::-webkit-calendar-picker-indicator:hover { opacity: 0.9; }
+
+    /* 5. БУТОНИ */
+    .btn-update {
+        background: linear-gradient(135deg, #fcd34d, #f59e0b);
+        color: #020617 !important; font-weight: 800; border: none;
+        border-radius: 12px; padding: 1rem; cursor: none;
+        box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.5);
+        transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .btn-update:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px -5px rgba(245, 158, 11, 0.7);
+    }
+    .btn-cancel {
+        background: rgba(255, 255, 255, 0.05); color: #e2e8f0;
+        border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
+        padding: 1rem; font-weight: 700; transition: all 0.3s; cursor: none;
+        text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; text-decoration: none;
+    }
+    .btn-cancel:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+    /* Допълнителен Инфо Блок */
+    .asset-log {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+
+    /* ФУТЪР */
+    .premium-footer {
+        border-top: 1px solid rgba(245, 158, 11, 0.15); padding-top: 4rem;
+        padding-bottom: 2rem; margin-top: 6rem; position: relative; z-index: 1;
+    }
+    .footer-link {
+        color: #94a3b8; text-decoration: none; transition: color 0.3s;
+        margin-bottom: 0.6rem; display: block; font-size: 0.9rem; cursor: none;
+    }
+    .footer-link:hover { color: #f59e0b; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center mb-5 animate__animated animate__fadeIn" style="min-height: 70vh; position: relative;">
+<div class="cursor-dot"></div>
+<div class="cursor-outline"></div>
+
+<div class="row justify-content-center mt-5 mb-5 animate__animated animate__fadeIn position-relative z-1">
     
-    <div class="ambient-glow" style="top: 20%; left: 30%; background: #f59e0b; width: 300px; height: 300px; filter: blur(120px); opacity: 0.2;"></div>
-    
-    <div class="col-md-8 col-lg-6 position-relative z-1">
+    <div class="col-lg-10 col-xl-8">
         
         <div class="text-center mb-5">
-            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 64px; height: 64px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2);">
-                <i class="fa-solid fa-pen-nib fs-3 text-warning"></i>
+            <div class="holo-container">
+                <i class="fa-solid fa-pen-ruler holo-icon"></i>
+                <div class="holo-ring"></div>
+                <div class="holo-ring-inner"></div>
             </div>
-            <h2 class="fw-extrabold mb-2 text-white">Редактирай {{ sub.name }}</h2>
-            <p class="text-muted">Нанеси желаните промени по абонамента.</p>
+            <div class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-3 py-1 rounded-pill mb-3 text-uppercase" style="letter-spacing: 2px; font-size: 0.7rem;">
+                АКТИВ: ID-{{ sub.id|default:"0982" }}
+            </div>
+            <h2 class="fw-extrabold mb-2 text-white outfit-font display-5">Рекалибрирай <span style="color: #fcd34d;">{{ sub.name }}</span></h2>
+            <p class="text-muted">Промени конфигурацията на този абонамент. Системата ще преизчисли бюджета автоматично.</p>
         </div>
 
-        <div class="bento-card p-4 p-md-5">
-            <form method="POST">
-                {% csrf_token %} 
-                
-                <div class="row g-4">
-                    {% for field in form %}
-                        <div class="{% if field.name == 'price' or field.name == 'currency' or field.name == 'start_date' or field.name == 'billing_cycle' %}col-md-6{% else %}col-12{% endif %}">
-                            <label class="form-label custom-label">{{ field.label }}</label>
-                            
-                            {{ field }}
-                            
-                            {% if field.errors %}
-                                <div class="text-danger small mt-2 fw-bold">
-                                    <i class="fa-solid fa-circle-exclamation me-1"></i> {{ field.errors.0 }}
+        <div class="row g-4">
+            <div class="col-md-8">
+                <div class="recalibration-card p-4 p-md-5" data-tilt data-tilt-max="2" data-tilt-glare="true" data-tilt-max-glare="0.1">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %} 
+                        
+                        <div class="row g-4">
+                            {% for field in form %}
+                                <div class="{% if field.name == 'price' or field.name == 'currency' or field.name == 'start_date' or field.name == 'billing_cycle' %}col-md-6{% else %}col-12{% endif %}" style="transform: translateZ(20px);">
+                                    <label class="form-label custom-label">
+                                        <i class="fa-solid fa-angle-right text-warning me-1"></i> {{ field.label }}
+                                    </label>
+                                    
+                                    {{ field }}
+                                    
+                                    {% if field.errors %}
+                                        <div class="text-danger small mt-2 fw-bold" style="background: rgba(239, 68, 68, 0.1); padding: 6px 12px; border-radius: 6px;">
+                                            <i class="fa-solid fa-triangle-exclamation me-1"></i> {{ field.errors.0 }}
+                                        </div>
+                                    {% endif %}
                                 </div>
-                            {% endif %}
+                            {% endfor %}
                         </div>
-                    {% endfor %}
+                        
+                        <hr class="my-5" style="border-color: rgba(245, 158, 11, 0.2);">
+                        
+                        <div class="d-flex gap-3" style="transform: translateZ(30px);">
+                            <a href="{% url 'dashboard' %}" class="btn-cancel w-50">
+                                <i class="fa-solid fa-xmark me-2"></i> Отказ
+                            </a>
+                            <button type="submit" class="btn-update w-50">
+                                <i class="fa-solid fa-fingerprint me-2"></i> Оторизирай
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                
-                <hr class="my-5" style="border-color: rgba(255,255,255,0.1);">
-                
-                <div class="d-flex gap-3">
-                    <a href="{% url 'dashboard' %}" class="btn w-50 py-2 border-0 fw-bold" style="background: rgba(255,255,255,0.05); color: white; border-radius: 12px; transition: 0.2s;">
-                        <i class="fa-solid fa-arrow-left me-2"></i> Отказ
-                    </a>
-                    <button type="submit" class="btn w-50 py-2 fs-6 fw-bold border-0 text-dark" style="background: #f59e0b; border-radius: 12px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); transition: 0.3s;">
-                        <i class="fa-solid fa-floppy-disk me-2"></i> Обнови
-                    </button>
+            </div>
+
+            <div class="col-md-4">
+                <div class="asset-log h-100 d-flex flex-column gap-4" data-tilt data-tilt-max="5">
+                    
+                    <div>
+                        <h6 class="text-white outfit-font fw-bold mb-3"><i class="fa-solid fa-shield-halved text-warning me-2"></i> Статус на актива</h6>
+                        <div class="p-3 rounded-3" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-success small fw-bold">АКТИВЕН</span>
+                                <span class="spinner-grow spinner-grow-sm text-success" style="width: 10px; height: 10px;"></span>
+                            </div>
+                            <span class="text-muted" style="font-size: 0.75rem;">Този абонамент в момента черпи от главния бюджет.</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h6 class="text-white outfit-font fw-bold mb-3"><i class="fa-solid fa-clock-rotate-left text-warning me-2"></i> Одитен Журнал</h6>
+                        
+                        <div class="border-start border-warning border-opacity-25 ps-3 ms-2 position-relative">
+                            <div style="position: absolute; left: -5px; top: 0; width: 8px; height: 8px; background: #f59e0b; border-radius: 50%; box-shadow: 0 0 10px #f59e0b;"></div>
+                            <p class="text-white small fw-bold mb-0">СЕГА</p>
+                            <p class="text-muted" style="font-size: 0.75rem;">Сесия за модификация (Отворена)</p>
+                        </div>
+
+                        <div class="border-start border-secondary border-opacity-25 ps-3 ms-2 position-relative mt-3">
+                            <div style="position: absolute; left: -4px; top: 0; width: 6px; height: 6px; background: #94a3b8; border-radius: 50%;"></div>
+                            <p class="text-muted small fw-bold mb-0">При създаването</p>
+                            <p class="text-muted opacity-50" style="font-size: 0.75rem;">Активиран в базата данни.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-3 border-top border-secondary border-opacity-25">
+                        <p class="text-muted mb-1" style="font-size: 0.7rem; text-transform: uppercase;">Сигурна връзка</p>
+                        <p class="text-white mb-0" style="font-size: 0.85rem; font-family: monospace;">AES-256-GCM <i class="fa-solid fa-lock text-success ms-1"></i></p>
+                    </div>
+
                 </div>
-            </form>
+            </div>
         </div>
-        
+
     </div>
 </div>
+
+<footer class="premium-footer">
+    <div class="container-fluid px-4 col-xl-10">
+        <div class="row">
+            <div class="col-lg-4 mb-4 mb-lg-0">
+                <h4 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-warning"></i> SubTracker
+                </h4>
+                <p class="text-muted small" style="line-height: 1.6; color: #94a3b8;">
+                    Водещият софтуер за управление и анализ на фирмени абонаменти. Оптимизирай бюджета си с помощта на изкуствен интелект.
+                </p>
+            </div>
+            <div class="col-lg-2 offset-lg-2 col-6 mb-4 mb-lg-0">
+                <h6 class="text-white text-uppercase letter-spacing-1 mb-4 fw-bold" style="font-size: 0.8rem;">Продукт</h6>
+                <a href="#" class="footer-link">Анализи</a>
+                <a href="#" class="footer-link">Експорт</a>
+            </div>
+            <div class="col-lg-2 col-6 mb-4 mb-lg-0">
+                <h6 class="text-white text-uppercase letter-spacing-1 mb-4 fw-bold" style="font-size: 0.8rem;">Компания</h6>
+                <a href="#" class="footer-link">За нас</a>
+                <a href="#" class="footer-link">Контакти</a>
+            </div>
+            <div class="col-lg-2 col-12">
+                <h6 class="text-white text-uppercase letter-spacing-1 mb-4 fw-bold" style="font-size: 0.8rem;">Правни</h6>
+                <a href="#" class="footer-link">Условия</a>
+                <a href="#" class="footer-link">Поверителност</a>
+            </div>
+        </div>
+        <div class="text-center mt-5 pt-4" style="border-top: 1px solid rgba(255,255,255,0.03); font-size: 0.8rem; color: #64748b;">
+            &copy; 2026 SubTracker Pro. Всички права запазени.
+        </div>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+<script>
+    // КЪСТЪМ КУРСОР ЛОГИКА (Кехлибарен цвят)
+    const cursorDot = document.querySelector('.cursor-dot');
+    const cursorOutline = document.querySelector('.cursor-outline');
+    const interactables = document.querySelectorAll('a, button, input, select');
+
+    window.addEventListener('mousemove', function (e) {
+        cursorDot.style.left = `${e.clientX}px`; cursorDot.style.top = `${e.clientY}px`;
+        cursorOutline.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 150, fill: "forwards" });
+    });
+
+    interactables.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            cursorOutline.style.width = '60px'; cursorOutline.style.height = '60px';
+            cursorOutline.style.background = 'rgba(245, 158, 11, 0.1)';
+        });
+        el.addEventListener('mouseleave', () => {
+            cursorOutline.style.width = '40px'; cursorOutline.style.height = '40px';
+            cursorOutline.style.background = 'transparent';
+        });
+    });
+
+    // Инжектиране на новия клас terminal-input в полетата на Django формата
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('.form-control, .form-select');
+        inputs.forEach(input => {
+            input.classList.add('terminal-input');
+        });
+    });
+</script>
 {% endblock %}
